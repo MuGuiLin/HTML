@@ -8,6 +8,10 @@
     <!-- If you'd like to support IE8 (for Video.js versions prior to v7) -->
     <!-- <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script> -->
     <title>video视频音轨</title>
+
+    <style>
+      li{ line-height: 50px; }
+    </style>
   </head>
 
   <body>
@@ -17,66 +21,139 @@
       <!-- muted静音自动播放
       <video muted autoplay loop controls src="./202107.mp4"></video>  -->
 
-      <video id="video" class="video-js" controls preload="auto" poster="./img/poster.png" data-setup="{}" >
+      <video
+        id="my-video"
+        class="video-js"
+        controls
+        preload="auto"
+        poster="./img/poster.png"
+        data-setup="{}"
+      >
         <source src="./media/202107.mp4" type="video/mp4" />
         <p class="vjs-no-js">
           要观看此视频，请启用JavaScript，并升级浏览器！
-          <a href="https://videojs.com/html5-video-support/" target="_blank" >支持HTML5视频</a>
+          <a href="https://videojs.com/html5-video-support/" target="_blank"
+            >支持HTML5视频</a
+          >
         </p>
       </video>
+    </div>
 
+    <br /><br />
+
+    <div>
+      <input type="text" id="text" /> <button type="button" id="add">添加音轨</button>
+      <h2>音轨列表</h2>
+      <ul id="trackList"></ul>
     </div>
 
     <script src="./js/vjs.zencdn.net_8.5.2_video.min.js"></script>
     <script>
-      const video = document.querySelector('#video');
-      // console.dir(video); 
+        class VideoTrack {
+          constructor({video_el = '', track_el = ''}){
+             if('function' != (typeof videojs)) {
+              throw new TypeError('请添加video.js文件！');
+            }
+            if(!video_el) {
+              throw new TypeError('请传入video标签id！');
+            }
+            this.video_el = video_el;
+            this.track_el = document.querySelector(track_el);
 
-      // https://videojs.com/guides/video-tracks/
-      const player = videojs('video');
-      console.log('player', player); 
+            // https://videojs.com/guides/video-tracks
+            this.player = videojs(this.video_el);
+
+            this.render();
+          };
+
+          add({id = Math.random().toString(36).substring(2), kind = 'commentary', label, language = 'en', selected = false} = {}){
+            try{
+              console.log(id)
+              //  创建轨迹对象
+              const track = new videojs.VideoTrack({ id, 
+                kind, // "alternative"：主轨道的可能替代方案。"captions"：带有刻录字幕的主视频轨道"main"：主视频轨道。"sign"：添加了手语叠加层的主视频轨道。"subtitles"：带有刻录字幕的主要视频轨道。"commentary"：在评论中刻录的主要视频轨道。""（默认值）：没有显式类型，或者用户代理无法识别轨道元数据给出的类型。
+                label, language, selected: Boolean(Math.random() > 0.5)
+              });
+              // 将曲目添加到播放器的视频曲目列表中。
+              this.player.videoTracks().addTrack(track);
+             } catch(err){
+              console.error(err);
+            } finally{
+              this.render();
+            };
+          };
+
+          del(id = ''){
+            if(!id) {
+              alert('音轨id不能为空！');
+            }
+            try{
+              if(confirm('是否确定删除？')) {
+                const track = this.player.videoTracks().getTrackById(id);
+                // 将其从视频曲目列表中删除。
+                this.player.videoTracks().removeTrack(track);
+              }
+            } catch(err){
+              console.error(err);
+            } finally{
+              this.render();
+            };
+          };
+
+          tracks() {
+            const videoTracks = this.player.videoTracks();
+
+            // 监听改变事件
+            videoTracks.addEventListener('change', (e) => {
+              console.log('videoTracks Change', e);
+
+              // 记录当前启用的VideoTrack标签
+              for (let i = 0; i < videoTracks.length; i++) {
+                const track = videoTracks[i];
+
+                if (track.enabled) {
+                  return this.player.log(track.label);
+                }
+              }
+            });
+
+            return videoTracks;
+          };
+
+          render() {
+            const { length, tracks_ } = this.tracks();
+            console.log(length);
+
+            if(length) {
+              let li = '';
+              for(let i = 0; i < length; i++) {
+                const { id, kind, label, language, selected } = tracks_[i];
+                li += `<li>${i + 1}、<b>ID：${id}；</b> kind：${kind}；label：${label}；language：${language}；selected：${selected}； <button type="button" onClick="vt.del('${id}')">⚔️删除音轨</button>`;
+              };
+              this.track_el.innerHTML = li;
+            }
+            
+          };
+        };
+
+        const vt = new VideoTrack({ 
+          video_el: 'my-video', 
+          track_el: '#trackList'
+        });
+
+        console.log('vt',  typeof videojs);
+        console.log('player', vt.player);
 
 
-      // 创建轨迹对象.
-      const track = new videojs.VideoTrack({
-        id: 'my-alternate-video-track',
-        kind: 'translation', // "alternative"：主轨道的可能替代方案。"captions"：带有刻录字幕的主视频轨道"main"：主视频轨道。"sign"：添加了手语叠加层的主视频轨道。"subtitles"：带有刻录字幕的主要视频轨道。"commentary"：在评论中刻录的主要视频轨道。""（默认值）：没有显式类型，或者用户代理无法识别轨道元数据给出的类型。
-        label: 'Director\'s Commentary',
-        language: 'en'
-      });
+        // const video = document.querySelector('#video');
+        // console.dir(video);
 
-      // 将曲目添加到播放器的视频曲目列表中。
-      player.videoTracks().addTrack(track);
-
-     /* const track2 = new videojs.VideoTrack({
-        id: 'my-alternate-video-track',
-        kind: 'commentary', // "alternative"：主轨道的可能替代方案。"captions"：带有刻录字幕的主视频轨道"main"：主视频轨道。"sign"：添加了手语叠加层的主视频轨道。"subtitles"：带有刻录字幕的主要视频轨道。"commentary"：在评论中刻录的主要视频轨道。""（默认值）：没有显式类型，或者用户代理无法识别轨道元数据给出的类型。
-        label: 'Director\'s Commentary',
-        language: 'en'
-      });
-
-      // 将曲目添加到播放器的视频曲目列表中。
-      player.videoTracks().addTrack(track2);*/
-
-
-      // 获取当前玩家的VideoTrackList对象。
-      const videoTrackList = player.videoTracks();
-      console.log(6666666, videoTrackList)
-
-      // 监听“改变”事件
-      videoTrackList.addEventListener('change', function(e) {
-        console.log(88888, e)
-
-        // 记录当前启用的VideoTrack标签
-        for (let i = 0; i < videoTrackList.length; i++) {
-          const track = videoTrackList[i];
-
-          if (track.enabled) {
-            videojs.log(track.label);
-            return;
-          }
-        }
-      });
+        
+        const text = document.querySelector('#text');
+        document.querySelector('#add').addEventListener('click', (event) => {
+          text.value ? vt.add({ id: text.value }) : vt.add();
+        });
+       
     </script>
   </body>
 </html>
