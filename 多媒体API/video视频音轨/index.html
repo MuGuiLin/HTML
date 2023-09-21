@@ -208,6 +208,93 @@
        }
 
       /*
+        e.renderVUMeter = function() {
+            var f = this.player_.nbOfChnlsAudio_;
+            if (0 !== f) {
+                var t = new (C.AudioContext || C.webkitAudioContext)
+                  , e = k.querySelector("video")
+                  , i = t.createMediaElementSource(e)
+                  , m = t.createChannelSplitter(f)
+                  , n = t.createChannelSplitter(f);
+                i.connect(n);
+                var r = t.createChannelMerger(f)
+                  , a = t.createScriptProcessor(4096, 1, 1);
+                i.connect(m);
+                for (var g = [], s = 0; s < f; s++) {
+                    var o = t.createAnalyser();
+                    o.fftSize = 2048,
+                    g.push(o);
+                    var l = t.createGain();
+                    l.gain.value = 1,
+                    Ma.push(l),
+                    Na.push(1),
+                    m.connect(l, s, 0),
+                    l.connect(o, 0, 0)
+                }
+                for (var u = 0; u < f; u++) {
+                    var c = t.createGain();
+                    c.gain.value = 1,
+                    xa.push(c),
+                    n.connect(c, u, 0),
+                    c.connect(r, 0, u)
+                }
+                var y = this.getVolumeDb
+                  , v = this.player_
+                  , _ = this.el()
+                  , b = _.height
+                  , T = _.width
+                  , S = 0;
+                a.onaudioprocess = function() {
+                    !function() {
+                        var t = _.getContext("2d");
+                        v.isFullscreen() && (t.canvas.width = 48,
+                        t.canvas.height = C.innerHeight - 57,
+                        b = C.innerHeight - 57,
+                        T = 48);
+                        v.isFullscreen() || (t.canvas.width = 48,
+                        t.canvas.height = v.currentHeight() - 96,
+                        b = v.currentHeight() - 96,
+                        T = 48);
+                        t.clearRect(0, 0, T, b);
+                        var e = t.createLinearGradient(0, 0, 0, b);
+                        e.addColorStop(0, "#F34B97"),
+                        e.addColorStop(.5, "#ffff4d"),
+                        e.addColorStop(.85, "#329142"),
+                        t.fillStyle = e;
+                        for (var i = 0; i < f; i++) {
+                            var n = g[i]
+                              , r = Ma[i]
+                              , a = n.frequencyBinCount
+                              , s = new Float32Array(a);
+                            n.getFloatTimeDomainData(s);
+                            var o = y(s)
+                              , l = -100
+                              , u = b / 9
+                              , c = u / 5
+                              , h = b / 9 * 8
+                              , d = h / 80
+                              , p = 0;
+                            o < 0 ? (l = o,
+                            l = 8 * Math.floor(Math.abs(l)) / 7,
+                            p = u + d * l + S) : 0 < o && (l = o,
+                            l = 5 * Math.floor(Math.abs(l)),
+                            p = u - c * l + S),
+                            0 === o || "0" === Na[i] ? t.clearRect(6 * i, 0, 2, b) : t.fillRect(6 * i, p, 2, b - p),
+                            m.connect(r, i, 0),
+                            r.connect(n, 0, 0)
+                        }
+                    }()
+                }
+                ,
+                g[0].connect(a),
+                a.connect(t.destination),
+                r.connect(t.destination)
+            }
+        }
+      */
+
+
+      /*
       # 这个类基于AudioTrack标准，用于创建新的音频轨道对象。
 
         AudioTrack构造器的选项如下：
