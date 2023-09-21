@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/vjs.zencdn.net_8.5.2_video-js.css" />
+    <!-- If you'd like to support IE8 (for Video.js versions prior to v7) -->
+    <!-- <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script> -->
+    <title>video视频音轨</title>
+  </head>
+
+  <body>
+    <h1>video视频</h1>
+    <hr />
+    <div>
+      <!-- muted静音自动播放
+      <video muted autoplay loop controls src="./202107.mp4"></video>  -->
+
+      <video id="video" class="video-js" controls preload="auto" poster="./img/poster.png" data-setup="{}" >
+        <source src="./media/202107.mp4" type="video/mp4" />
+        <p class="vjs-no-js">
+          要观看此视频，请启用JavaScript，并升级浏览器！
+          <a href="https://videojs.com/html5-video-support/" target="_blank" >支持HTML5视频</a>
+        </p>
+      </video>
+
+    </div>
+
+    <script src="./js/vjs.zencdn.net_8.5.2_video.min.js"></script>
+    <script>
+      const video = document.querySelector('#video');
+      // console.dir(video); 
+
+      // https://videojs.com/guides/video-tracks/
+      const player = videojs('video');
+      console.log('player', player); 
+
+
+      // 创建轨迹对象.
+      const track = new videojs.VideoTrack({
+        id: 'my-alternate-video-track',
+        kind: 'translation', // "alternative"：主轨道的可能替代方案。"captions"：带有刻录字幕的主视频轨道"main"：主视频轨道。"sign"：添加了手语叠加层的主视频轨道。"subtitles"：带有刻录字幕的主要视频轨道。"commentary"：在评论中刻录的主要视频轨道。""（默认值）：没有显式类型，或者用户代理无法识别轨道元数据给出的类型。
+        label: 'Director\'s Commentary',
+        language: 'en'
+      });
+
+      // 将曲目添加到播放器的视频曲目列表中。
+      player.videoTracks().addTrack(track);
+
+     /* const track2 = new videojs.VideoTrack({
+        id: 'my-alternate-video-track',
+        kind: 'commentary', // "alternative"：主轨道的可能替代方案。"captions"：带有刻录字幕的主视频轨道"main"：主视频轨道。"sign"：添加了手语叠加层的主视频轨道。"subtitles"：带有刻录字幕的主要视频轨道。"commentary"：在评论中刻录的主要视频轨道。""（默认值）：没有显式类型，或者用户代理无法识别轨道元数据给出的类型。
+        label: 'Director\'s Commentary',
+        language: 'en'
+      });
+
+      // 将曲目添加到播放器的视频曲目列表中。
+      player.videoTracks().addTrack(track2);*/
+
+
+      // 获取当前玩家的VideoTrackList对象。
+      const videoTrackList = player.videoTracks();
+      console.log(6666666, videoTrackList)
+
+      // 监听“改变”事件
+      videoTrackList.addEventListener('change', function(e) {
+        console.log(88888, e)
+
+        // 记录当前启用的VideoTrack标签
+        for (let i = 0; i < videoTrackList.length; i++) {
+          const track = videoTrackList[i];
+
+          if (track.enabled) {
+            videojs.log(track.label);
+            return;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
