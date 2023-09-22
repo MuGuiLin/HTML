@@ -13,52 +13,95 @@
       Position the cursor vertically to change the volume (down is louder).
       将光标垂直放置以更改音量（向下音量更大）。
     </p>
-    <audio controls>
+
+    <audio mute controls>
       <source src="./media/hlbb.mp3" type="audio/mp3" />
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
 
-    <script>
-      let audioCtx;
-      const audioElement = document.querySelector("audio");
+    <br />
+    <input type="range" id="range" min="0" max="1000" />
 
-      audioElement.addEventListener("play", () => {
+    <script>
+      {    
+        /*
+        let audioCtx;
+        const audioElement = document.querySelector("audio");
+
+        audioElement.addEventListener("play", () => {
         audioCtx = new AudioContext();
         // Create a MediaElementAudioSourceNode
         // Feed the HTMLMediaElement into it
-        let source = new MediaElementAudioSourceNode(audioCtx, {
-          mediaElement: audioElement,
+          let source = new MediaElementAudioSourceNode(audioCtx, {
+            mediaElement: audioElement,
+          });
+
+          // Create a gain node
+          let gainNode = new GainNode(audioCtx);
+
+          // Create variables to store mouse pointer Y coordinate
+          // and HEIGHT of screen
+          let currentY;
+          let height = window.innerHeight;
+
+          // Get new mouse pointer coordinates when mouse is moved
+          // then set new gain value
+
+          document.onmousemove = (e) => {
+            currentY = window.Event
+              ? e.pageY
+              : event.clientY +
+                (document.documentElement.scrollTop
+                  ? document.documentElement.scrollTop
+                  : document.body.scrollTop);
+
+            gainNode.gain.value = currentY / height;
+          };
+
+          // connect the AudioBufferSourceNode to the gainNode
+          // and the gainNode to the destination, so we can play the
+          // music and adjust the volume using the mouse cursor
+          source.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
         });
+       */
+       }
 
-        // Create a gain node
-        let gainNode = new GainNode(audioCtx);
+      {
+        var audioCtx = new AudioContext();
+        // var url = './media/hlbb.mp3';
+        // var audio = new Audio(url);
+        const audio = document.querySelector("audio");
 
-        // Create variables to store mouse pointer Y coordinate
-        // and HEIGHT of screen
-        let currentY;
-        let height = window.innerHeight;
+        var processor = audioCtx.createScriptProcessor(2048, 1, 1);
+        var meter = document.getElementById('meter');
+        var source;
 
-        // Get new mouse pointer coordinates when mouse is moved
-        // then set new gain value
+        audio.addEventListener('canplaythrough', function(){
+          source = audioCtx.createMediaElementSource(audio);
+          source.connect(processor);
+          source.connect(audioCtx.destination);
+          processor.connect(audioCtx.destination);
 
-        document.onmousemove = (e) => {
-          currentY = window.Event
-            ? e.pageY
-            : event.clientY +
-              (document.documentElement.scrollTop
-                ? document.documentElement.scrollTop
-                : document.body.scrollTop);
+          audio.play();
+        }, false);
 
-          gainNode.gain.value = currentY / height;
+        // loop through PCM data and calculate average
+        // volume for a given 2048 sample buffer
+        processor.onaudioprocess = function(evt){
+          var input = evt.inputBuffer.getChannelData(0)
+            , len = input.length   
+            , total = i = 0
+            , rms;
+          while ( i < len ) total += Math.abs( input[i++] );
+          rms = Math.sqrt( total / len );
+
+          console.log(rms, rms * 100 );
+          range.value = rms * 1000;
         };
-
-        // connect the AudioBufferSourceNode to the gainNode
-        // and the gainNode to the destination, so we can play the
-        // music and adjust the volume using the mouse cursor
-        source.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-      });
+      }
+   
     </script>
   </body>
 </html>
