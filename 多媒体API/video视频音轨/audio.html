@@ -58,10 +58,10 @@
 
             gainNode.gain.value = currentY / height;
           };
-
-          // connect the AudioBufferSourceNode to the gainNode
-          // and the gainNode to the destination, so we can play the
-          // music and adjust the volume using the mouse cursor
+          
+          //将AudioBufferSourceNode连接到gainNode
+          //和gainNode到目的地，这样我们就可以玩
+          //音乐并使用鼠标光标调整音量
           source.connect(gainNode);
           gainNode.connect(audioCtx.destination);
         });
@@ -87,8 +87,8 @@
           audio.play();
         }, false);
 
-        // loop through PCM data and calculate average
-        // volume for a given 2048 sample buffer
+        // 循环PCM数据并计算平均值
+        // 给定2048样本缓冲区的体积
         processor.onaudioprocess = function(evt){
           var input = evt.inputBuffer.getChannelData(0)
             , len = input.length   
