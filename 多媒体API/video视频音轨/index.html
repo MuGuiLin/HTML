@@ -68,7 +68,14 @@
             this.render();
           };
 
-          add({id = Math.random().toString(36).substring(2), kind = 'translation', label = 'Spanish-' + Date.now(), language = 'en', enabled = Boolean(Math.random() > 0.5)} = {}){
+
+        // 生成guid
+        guid() {
+          const S4 = () => (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+          return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+        };
+
+          add({id = this.guid() || Math.random().toString(36).substring(2), kind = 'translation', label = 'Spanish-' + Date.now(), language = 'en', enabled = Boolean(Math.random() > 0.5)} = {}){
             try{
               const track = new videojs.AudioTrack({ id, 
                 kind, 
