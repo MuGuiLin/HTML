@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>绘制音频波形图</title>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        padding: 50px;
+      }
+      canvas {
+        display: block;
+        border-bottom: 3px solid rgb(255, 0, 255);
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>绘制音频波形图</h1>
+    <hr />
+
+    <video id="video" loop controls>
+      <source src="./media/202107.mp4" type="audio/mpeg" />
+    </video>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+      let analyser,
+        audioContext,
+        timerID,
+        checktimerID,
+        analyserNode;
+
+      let hasUserInteracted = false;
+
+      const video = document.getElementById("video");
+      video.muted = true;
+      video.autoplay = true;
+      video.controls = true;
+
+      const canvas = document.getElementById("canvas");
+      canvas.width = 1000 || video.videoWidth;
+      canvas.height = 200 || video.videoHeight;
+      const ctx = canvas.getContext("2d");
+  
+      function random(lower, upper) {
+        return Math.floor(Math.random() * (upper - lower + 1)) + lower;
+      }
+
+      function randomColor() {
+        return "rgb(" + random(0, 256) + "," + random(0, 256) + "," + random(0, 256) + ")";
+      }
+
+      // 绘制波形图
+      function drawWaveform() {
+        // 获取波形数据
+        const bufferLength = analyser.fftSize;
+        // console.log("bufferLength：", bufferLength);
+
+        const dataArray = new Uint8Array(bufferLength);
+        console.log("dataArray：", dataArray);
+
+        analyser.getByteTimeDomainData(dataArray);
+        // 清空画布
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = randomColor();
+        // 绘制波形图
+        ctx.beginPath();
+        var sliceWidth = (canvas.width * 1.0) / bufferLength;
+        var x = 0;
+        for (var i = 0; i < bufferLength; i++) {
+          var v = dataArray[i] / 128.0;
+          var y = (v * canvas.height) / 2;
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+          x += sliceWidth;
+        }
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+      }
+
+      function initWaveDraw() {
+        // 创建音频上下文
+        if (!audioContext) {
+          audioContext = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          analyser.connect(audioContext.destination);
+          analyserNode = audioContext.createMediaElementSource(video);
+          analyserNode.connect(analyser);
+          timerID = setInterval(drawWaveform, 200);
+        }
+      }
+
+      //定时检测鼠标事件,开启带声音的播放
+      checktimerID = setInterval(function checkMouseClick() {
+        if (hasUserInteracted) {
+          initWaveDraw();
+          video.muted = false;
+          video.play();
+          clearInterval(checktimerID);
+        }
+      }, 1000);
+
+      // 监听键盘按下事件
+      function handleUserInteraction() {
+        console.log("user has interacted");
+        hasUserInteracted = true;
+      }
+
+      document.addEventListener("click", handleUserInteraction);
+      setTimeout(function () {
+        video.addEventListener("volumechange", handleUserInteraction);
+      }, 2000);
+
+    </script>
+  </body>
+</html>
