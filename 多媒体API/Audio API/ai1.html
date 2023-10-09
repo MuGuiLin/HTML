@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <video id="myVideo" width="320" height="240" controls>
+      <source src="./media/202107.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+
+    <p id="leftChannelLevel"></p>
+    <p id="rightChannelLevel"></p>
+
+    <button onclick="playLeft()">播放左声道</button>
+    <button onclick="pauseLeft()">暂停左声道</button>
+    <button onclick="playRight()">播放右声道</button>
+    <button onclick="pauseRight()">暂停右声道</button>
+
+    <canvas id="canvas" width="400" height="200"></canvas>
+
+    <script>
+      let videoElement = document.getElementById("myVideo");
+      let audioContext = new AudioContext();
+      let sourceNode = audioContext.createMediaElementSource(videoElement);
+      let analyserNode = audioContext.createAnalyser();
+
+      sourceNode.connect(analyserNode);
+      analyserNode.connect(audioContext.destination);
+
+      let bufferLength = analyserNode.frequencyBinCount;
+      let dataArray = new Uint8Array(bufferLength);
+
+      let leftChannelLevel = document.getElementById("leftChannelLevel");
+      let rightChannelLevel = document.getElementById("rightChannelLevel");
+
+      // 更新音频响度的函数
+      function updateAudioLevel() {
+        requestAnimationFrame(updateAudioLevel);
+        analyserNode.getByteTimeDomainData(dataArray);
+        leftChannelLevel.textContent = calculateLevel(dataArray, 0);
+        rightChannelLevel.textContent = calculateLevel(dataArray, 1);
+        console.log(dataArray)
+      }
+
+      // 计算音频响度的函数
+      function calculateLevel(array, channel) {
+        let sum = 0;
+        for (let i = 0; i < array.length; i++) {
+          sum += array[i];
+        }
+        return (sum / array.length) * channel;
+      }
+
+      // 开始监听音频响度
+      updateAudioLevel();
+    </script>
+  </body>
+</html>
