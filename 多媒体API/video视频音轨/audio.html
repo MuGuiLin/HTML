@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web Audio API examples: MediaElementAudioSource()</title>
   </head>
 
@@ -22,9 +22,9 @@
 
     <br />
     <input type="range" id="range" min="0" max="1000" />
-
+    <input type="range" min="0" max="100" id="volume" />
     <script>
-      {    
+      {
         /*
         let audioCtx;
         const audioElement = document.querySelector("audio");
@@ -66,7 +66,7 @@
           gainNode.connect(audioCtx.destination);
         });
        */
-       }
+      }
 
       {
         var audioCtx = new AudioContext();
@@ -75,33 +75,66 @@
         const audio = document.querySelector("audio");
 
         var processor = audioCtx.createScriptProcessor(2048, 1, 1);
-        var meter = document.getElementById('meter');
+        var meter = document.getElementById("meter");
         var source;
 
-        audio.addEventListener('canplaythrough', function(){
-          source = audioCtx.createMediaElementSource(audio);
-          source.connect(processor);
-          source.connect(audioCtx.destination);
-          processor.connect(audioCtx.destination);
+        audio.addEventListener(
+          "canplaythrough",
+          function () {
+            source = audioCtx.createMediaElementSource(audio);
+            source.connect(processor);
+            source.connect(audioCtx.destination);
+            processor.connect(audioCtx.destination);
 
-          audio.play();
-        }, false);
+            audio.play();
+          },
+          false
+        );
 
         // 循环PCM数据并计算平均值
         // 给定2048样本缓冲区的体积
-        processor.onaudioprocess = function(evt){
-          var input = evt.inputBuffer.getChannelData(0)
-            , len = input.length   
-            , total = i = 0
-            , rms;
-          while ( i < len ) total += Math.abs( input[i++] );
-          rms = Math.sqrt( total / len );
+        processor.onaudioprocess = function (evt) {
+          var input = evt.inputBuffer.getChannelData(0),
+            len = input.length,
+            total = (i = 0),
+            rms;
+          while (i < len) total += Math.abs(input[i++]);
+          rms = Math.sqrt(total / len);
 
-          console.log(input, rms, rms * 100 );
+          // console.log(input, rms, rms * 100);
           range.value = rms * 1000;
         };
       }
-   
+    </script>
+
+    <script type="text/javascript">
+      var tank = new Audio("http://qianduannotes.duapp.com/file/tankWar.mp3");
+      tank.loop = true;
+      var mario = new Audio(
+        "http://qianduannotes.duapp.com/file/SuperMario.mp3"
+      );
+      mario.loop = true;
+
+      var AudioContext = AudioContext || webkitAudioContext;
+      var context = new AudioContext();
+      var source1 = context.createMediaElementSource(tank);
+      var source2 = context.createMediaElementSource(mario);
+      var gain1 = context.createGain();
+      var gain2 = context.createGain(); //连接：source → gain → destination    source1.connect(gain1);
+      source2.connect(gain2);
+      gain1.connect(context.destination);
+      gain2.connect(context.destination); //音量控制
+      var value;
+      onload = volume.onchange = function () {
+        gain1.gain.value = volume.value / 100;
+        gain2.gain.value = 1 - volume.value / 100;
+      };
+
+      tank.onload = mario.onlond = function () {
+        console.log("var1, var2");
+      };
+      tank.play();
+      mario.play();
     </script>
   </body>
 </html>
