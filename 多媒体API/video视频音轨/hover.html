@@ -6,10 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>鼠标hover按钮无中生有播放声音</title>
     <style>
-      button {
+      button, select {
         padding: 20px 50px;
-        font-size: 22px;
-        border-color: #CCC;
+        font-size: 28px;
+        font-weight: bold;
+        border-color: #ccc;
+      }
+      label{
+        font-size: 28px;
+        font-weight: bold;
       }
     </style>
   </head>
@@ -19,37 +24,65 @@
     <p>鼠标hover按钮无中生有播放声音。</p>
     <hr />
 
-    <button id="button">鼠标hover经过我试试</button>
+    <label>
+      波形声调基本类型：<select>
+        <option>sine</option>
+        <option>square</option>
+        <option>sawtooth</option>
+        <option>triangle</option>
+        <option>custom</option>
+      </select>
+    </label>
+
+    <button>1</button>
+    <button>2</button>
+    <button>3</button>
+    <button>4</button>
+    <button>5</button>
+    <button>6</button>
+    <button>7</button>
+
     <script>
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
       (function () {
-        if (!window.AudioContext) {
+        const audioContext = window.AudioContext || window.webkitAudioContext;
+        if (!audioContext) {
           alert("当前浏览器不支持Web Audio API");
           return;
         }
 
-        // 按钮元素
-        var eleButton = document.getElementById("button");
-
         // 创建新的音频上下文接口
-        var audioCtx = new AudioContext();
+        const audioCtx = new audioContext();
 
         // 发出的声音频率数据，表现为音调的高低
-        var arrFrequency = [
+        const arrFrequency = [
           196.0, 220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0, 440.0,
           493.88, 523.25, 587.33, 659.25, 698.46, 783.99, 880.0, 987.77, 1046.5,
         ];
 
+        const color = [
+          "red",
+          "orange",
+          "yellow",
+          "green",
+          "cyan",
+          "blue",
+          "purple",
+        ];
+
         // 音调依次递增或者递减处理需要的参数
-        var start = 0,
-          direction = 1;
+        let start = 0,
+          direction = 1,
+          oscillatorType = "sine";
 
-        const color = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple'];
+        document
+          .querySelector("select")
+          .addEventListener("change", function () {
+            oscillatorType = this.value;
+          });
 
-        // 鼠标hover我们的按钮的时候
-        eleButton.addEventListener("mouseenter", function () {
+        function hover() {
           // 当前频率
-          var frequency = arrFrequency[start];
+          let frequency = arrFrequency[start];
           // 如果到头，改变音调的变化规则（增减切换）
           if (!frequency) {
             direction = -1 * direction;
@@ -60,16 +93,16 @@
           start = start + direction;
 
           // 创建一个OscillatorNode, 它表示一个周期性波形（振荡），基本上来说创造了一个音调
-          var oscillator = audioCtx.createOscillator();
+          const oscillator = audioCtx.createOscillator();
           // 创建一个GainNode,它可以控制音频的总音量
-          var gainNode = audioCtx.createGain();
+          const gainNode = audioCtx.createGain();
           // 把音量，音调和终节点进行关联
           oscillator.connect(gainNode);
           // audioCtx.destination返回AudioDestinationNode对象，表示当前audio context中所有节点的最终节点，一般表示音频渲染设备
           gainNode.connect(audioCtx.destination);
-          // 指定音调的类型，其他还有square|triangle|sawtooth
-          oscillator.type = "sine";
-          // 设置当前播放声音的频率，也就是最终播放声音的调调
+          // 指定音调的类型，基础值有 "sine"、"square"、"sawtooth"、"triangle"、 "custom"。默认值是 "sine"。
+          oscillator.type = oscillatorType;
+          // 设置当前播放声音的频率，也就是最终播放声音的音调，默认值是 440 Hz (基本的中 A 音高)
           oscillator.frequency.value = frequency;
           // 当前时间设置音量为0
           gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
@@ -85,8 +118,14 @@
           // 1秒后完全停止声音
           oscillator.stop(audioCtx.currentTime + 1);
 
-          this.style.background = color[parseInt(Math.random() * color.length - 1)];
-          console.log(color[Math.random() * color.length],Math.random() * color.length, Math.random() , color.length)
+          this.style.background =
+            color[parseInt(Math.random() * color.length - 1)];
+          console.log(audioCtx);
+        }
+
+        // 鼠标hover我们的按钮的时候
+        document.querySelectorAll("button").forEach(function (o) {
+          o.addEventListener("mouseenter", hover);
         });
       })();
     </script>
