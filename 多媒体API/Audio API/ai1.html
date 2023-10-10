@@ -5,7 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      body{ padding: 100px; }
+      body {
+        padding: 100px;
+      }
       input[type="range"] {
         transform: rotate(-90deg);
       }
@@ -13,14 +15,17 @@
   </head>
 
   <body>
-    <input type="range" id="range1" min="0" max="1000" />
-    <input type="range" id="range2" min="0" max="1000" />
-    <video id="video" width="320" height="240" controls>
-      <source src="./media/202107.mp4" type="video/mp4" />
+    
+    <video id="video" width="800" height="600" controls>
+      <source src="./media/AAC-5.1.mp4" type="video/mp4" />
+      <!-- <source src="./media/202107.mp4" type="video/mp4" />
+      <source src="./media/八佰HD国语中字.mp4" type="video/mp4" /> -->
       Your browser does not support the video tag.
     </video>
-    <input type="range" id="range3" min="0" max="1000" />
-    <input type="range" id="range4" min="0" max="1000" />
+    <input type="range" id="range1" min="-1000" max="1000" />
+    <input type="range" id="range2" min="-1000" max="1000" />
+    <input type="range" id="range3" min="-1000" max="1000" />
+    <input type="range" id="range4" min="-1000" max="1000" />
 
     <script>
       const video = document.getElementById("video");
@@ -38,6 +43,7 @@
 
       const bufferLength = analyserNode.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
+      let rafid = null;
 
       // 计算音频响度的函数
       function calculateLevel(array, channel) {
@@ -45,27 +51,60 @@
         for (let i = 0; i < array.length; i++) {
           sum += array[i];
         }
-        return (sum / array.length) * channel;
+        const res = (sum / array.length) * channel;
+        return res;
       }
 
       // 更新音频响度的函数
       function updateAudioLevel() {
-        requestAnimationFrame(updateAudioLevel);
         analyserNode.getByteTimeDomainData(dataArray);
-        range1.value = calculateLevel(dataArray, 0);
+        // range1.value = calculateLevel(dataArray, 0);
         range1.value = calculateLevel(dataArray, 1);
         range2.value = calculateLevel(dataArray, 2);
         range3.value = calculateLevel(dataArray, 3);
         range4.value = calculateLevel(dataArray, 4);
+
+        rafid = requestAnimationFrame(updateAudioLevel);
       }
 
+      // play || playing
       video.addEventListener("play", function () {
         // 开始监听音频响度
         updateAudioLevel();
       });
 
+      video.addEventListener("pause", function () {
+        cancelAnimationFrame(rafid);
+      });
+
       video.addEventListener("ended", function () {
-        cancelAnimationFrame(updateAudioLevel);
+        cancelAnimationFrame(rafid);
+      });
+
+      // 监听视频加载完成事件
+      video.addEventListener("loadedmetadata", function () {
+        // 获取媒体播放器实例
+        // var mediaPlayer = video.play();
+        
+
+        // 监听播放器状态变化事件
+        this.addEventListener("change", function () {
+          // 获取音频轨道数据
+          var audioTracks = this.audioTracks();
+
+          console.log(audioTracks, 6666666)
+
+          // 输出音频轨道数量
+          console.log("音频轨道数量：", audioTracks.length);
+
+          // 获取第一个音频轨道的数据
+          var track = audioTracks[0];
+
+          // 输出音频轨道的轨道号、语言和音量信息
+          console.log("轨道号：", track.id);
+          console.log("语言：", track.language);
+          console.log("音量：", track.volume);
+        });
       });
     </script>
   </body>

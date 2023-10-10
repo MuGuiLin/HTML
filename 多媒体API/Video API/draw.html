@@ -21,17 +21,13 @@
     <hr />
 
     <video id="video" loop controls>
-      <source src="./media/202107.mp4" type="audio/mpeg" />
+      <source src="./media/AAC-5.1.mp4" type="audio/mpeg" />
     </video>
 
     <canvas id="canvas"></canvas>
 
     <script>
-      let analyser,
-        audioContext,
-        timerID,
-        checktimerID,
-        analyserNode;
+      let analyser, audioContext, timerID, checktimerID, analyserNode;
 
       let hasUserInteracted = false;
 
@@ -44,13 +40,21 @@
       canvas.width = 1000 || video.videoWidth;
       canvas.height = 200 || video.videoHeight;
       const ctx = canvas.getContext("2d");
-  
+
       function random(lower, upper) {
         return Math.floor(Math.random() * (upper - lower + 1)) + lower;
       }
 
       function randomColor() {
-        return "rgb(" + random(0, 256) + "," + random(0, 256) + "," + random(0, 256) + ")";
+        return (
+          "rgb(" +
+          random(0, 256) +
+          "," +
+          random(0, 256) +
+          "," +
+          random(0, 256) +
+          ")"
+        );
       }
 
       // 绘制波形图
@@ -63,11 +67,12 @@
         console.log("dataArray：", dataArray);
 
         analyser.getByteTimeDomainData(dataArray);
-        // 清空画布
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         ctx.lineWidth = 1;
         ctx.strokeStyle = randomColor();
+
         // 绘制波形图
         ctx.beginPath();
         var sliceWidth = (canvas.width * 1.0) / bufferLength;
@@ -82,6 +87,18 @@
           }
           x += sliceWidth;
         }
+        // console.log(sliceWidth, bufferLength);
+        
+        ctx.font = "18px Verdana";
+        ctx.fillStyle = "rgb(0, 0,255)";
+
+        ctx.fillText(
+          "analyser.frequencyBinCount: " + analyser.frequencyBinCount,
+          10,
+          20
+        );
+        ctx.fillText("analyser.fftSize: " + bufferLength, 10, 40);
+
         ctx.lineTo(canvas.width, canvas.height / 2);
         ctx.stroke();
       }
@@ -89,7 +106,8 @@
       function initWaveDraw() {
         // 创建音频上下文
         if (!audioContext) {
-          audioContext = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+          audioContext = new (globalThis.AudioContext ||
+            globalThis.webkitAudioContext)();
           analyser = audioContext.createAnalyser();
           analyser.connect(audioContext.destination);
           analyserNode = audioContext.createMediaElementSource(video);
@@ -118,7 +136,6 @@
       setTimeout(function () {
         video.addEventListener("volumechange", handleUserInteraction);
       }, 2000);
-
     </script>
   </body>
 </html>

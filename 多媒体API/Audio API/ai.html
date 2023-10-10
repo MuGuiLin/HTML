@@ -5,7 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      body{ padding: 100px; }
+      body {
+        padding: 100px;
+      }
       input[type="range"] {
         transform: rotate(-90deg);
       }
@@ -28,7 +30,7 @@
     <canvas id="canvas" width="400" height="200"></canvas>
 
     <script>
-      var audioContext = new  (window.AudioContext || window.webkitAudioContext)();
+      var audioContext = new (window.AudioContext || window.webkitAudioContext)();
       var video = document.getElementById("myVideo");
       var sourceNode = audioContext.createMediaElementSource(video);
       var analyserNode = audioContext.createAnalyser();
@@ -38,6 +40,7 @@
       var rightChannelLevel = 0;
       var isPlayingLeft = false;
       var isPlayingRight = false;
+      let rafid = null;
 
       // 将视频的音频流连接到音频上下文和分析器节点
       sourceNode.connect(analyserNode);
@@ -73,9 +76,9 @@
           canvas.width * (leftChannelLevel / bufferLength),
           20
         );
-        requestAnimationFrame(draw);
+        console.log(bufferLength)
+        rafid = requestAnimationFrame(draw);
       }
-      draw();
 
       // 控制左声道的播放和暂停
       function playLeft() {
@@ -90,7 +93,7 @@
           }, 1); // 从第一个（左）声道开始遍历
           isPlayingLeft = false;
         }
-      };
+      }
 
       function pauseLeft() {
         // 控制右声道的播放和暂停的方法类似，只需更改声道的索引即可，
@@ -106,6 +109,19 @@
           isPlayingRight = false;
         }
       }
+
+      video.addEventListener("play", function () {
+        // 开始监听音频响度
+        draw();
+      });
+
+      video.addEventListener("pause", function () {
+        cancelAnimationFrame(rafid);
+      });
+
+      video.addEventListener("ended", function () {
+        cancelAnimationFrame(rafid);
+      });
     </script>
   </body>
 </html>

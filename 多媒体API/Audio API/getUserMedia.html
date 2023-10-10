@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        padding: 100px;
+      }
+      input[type="range"] {
+        transform: rotate(-90deg);
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // let stream = null;
+      // navigator.mediaDevices
+      //   .getUserMedia({ video: true, audio: true })
+      //   .then(function (stream) {
+      //     this.stream = stream;
+      //     let audioContext = new AudioContext();
+      //     let scriptNode = audioContext.createScriptProcessor(2048);
+      //     scriptNode.onaudioprocess = function (e) {
+      //       let left = e.inputBuffer.getChannelData(0);
+      //       let right = e.inputBuffer.getChannelData(1);
+      //       // 对左右声道进行处理
+      //       // 例如，计算音量大小
+      //       let maxLeft = -Infinity;
+      //       let minLeft = Infinity;
+      //       let maxRight = -Infinity;
+      //       let minRight = Infinity;
+      //       for (let i = 0; i < left.length; i++) {
+      //         maxLeft = Math.max(maxLeft, left[i]);
+      //         minLeft = Math.min(minLeft, left[i]);
+      //         maxRight = Math.max(maxRight, right[i]);
+      //         minRight = Math.min(minRight, right[i]);
+      //       }
+      //       console.log("左声道最大音量：", maxLeft, "最小音量：", minLeft);
+      //       console.log("右声道最大音量：", maxRight, "最小音量：", minRight);
+      //     };
+      //     let recorder = new MediaRecorder(this.stream);
+      //     recorder.start();
+      //     this.scriptNode = scriptNode;
+      //   })
+      //   .catch(function (err) {
+      //     console.log("Error: ", err);
+      //   });
+
+      {
+        function run() {
+          navigator.mediaDevices
+            .getUserMedia({ video: true, audio: true })
+            .then(function (stream) {
+              let audioContext = new AudioContext();
+              let audioDestination =
+                audioContext.createMediaStreamDestination();
+              let audioTracks = stream.getAudioTracks();
+
+              for (let i = 0; i < audioTracks.length; i++) {
+                let track = audioTracks[i];
+                track.enabled = true;
+                stream.addTrack(track);
+              }
+
+              let audioData = [];
+              audioDestination.stream = stream;
+              let scriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+              scriptNode.onaudioprocess = function (e) {
+                let left = e.inputBuffer.getChannelData(0);
+                let right = e.inputBuffer.getChannelData(1);
+                // 对左右声道进行处理
+                // 例如，计算音量大小
+                for (let i = 0; i < left.length; i++) {
+                  audioData[0][i] = left[i];
+                  audioData[1][i] = right[i];
+                }
+              };
+              audioContext.resume();
+            })
+            .catch(function (err) {
+              console.log("Error: ", err);
+            });
+        }
+      }
+      run();
+    </script>
+  </body>
+</html>

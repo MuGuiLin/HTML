@@ -16,78 +16,42 @@
   </head>
 
   <body>
-    <h1>Web Audio API examples: MediaElementAudioSource()</h1>
-    <p>
-      Position the cursor vertically to change the volume (down is louder).
-      将光标垂直放置以更改音量（向下音量更大）。
-    </p>
+    <h1>Web Audio API examples: createScriptProcessor()</h1>
 
+    <br />
+    <br />
+
+    <input type="range" id="F" min="0" max="100" />
     <audio mute controls>
       <source src="./media/hlbb.mp3" type="audio/mp3" />
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
+    <video mute controls width="500" >
+      <source src="./media/hero.mp4" type="video/mp4" />
+      <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
+    </video>
+    <input type="range" id="R" min="0" max="100" />
 
-    <br />
-    <input type="range" id="range" min="0" max="1000" />
-    <input type="range" min="0" max="100" id="volume" />
+    <button type="button" id="button">查看音频通道数量</button>
     <script>
-      {
-        /*
-        let audioCtx;
-        const audioElement = document.querySelector("audio");
-
-        audioElement.addEventListener("play", () => {
-        audioCtx = new AudioContext();
-        // Create a MediaElementAudioSourceNode
-        // Feed the HTMLMediaElement into it
-          let source = new MediaElementAudioSourceNode(audioCtx, {
-            mediaElement: audioElement,
-          });
-
-          // Create a gain node
-          let gainNode = new GainNode(audioCtx);
-
-          // Create variables to store mouse pointer Y coordinate
-          // and HEIGHT of screen
-          let currentY;
-          let height = window.innerHeight;
-
-          // Get new mouse pointer coordinates when mouse is moved
-          // then set new gain value
-
-          document.onmousemove = (e) => {
-            currentY = window.Event
-              ? e.pageY
-              : event.clientY +
-                (document.documentElement.scrollTop
-                  ? document.documentElement.scrollTop
-                  : document.body.scrollTop);
-
-            gainNode.gain.value = currentY / height;
-          };
-          
-          //将AudioBufferSourceNode连接到gainNode
-          //和gainNode到目的地，这样我们就可以玩
-          //音乐并使用鼠标光标调整音量
-          source.connect(gainNode);
-          gainNode.connect(audioCtx.destination);
-        });
-       */
-      }
-
       {
         var audioCtx = new AudioContext();
         // var url = './media/hlbb.mp3';
         // var audio = new Audio(url);
-        const audio = document.querySelector("audio");
+        // const audio = document.querySelector("audio");
+        const audio = document.querySelector("video");
 
-        var processor = audioCtx.createScriptProcessor(2048, 1, 1);
-        var meter = document.getElementById("meter");
-        var source;
+        const F = document.querySelector("#F");
+        const R = document.querySelector("#R");
+
+        const processor = audioCtx.createScriptProcessor(2048, 1, 1);
+
+        let source;
+        let audioData = [];
 
         audio.addEventListener(
-          "canplaythrough",
+          "canplaythrough", // loadedmetadata
           function () {
             source = audioCtx.createMediaElementSource(audio);
             source.connect(processor);
@@ -102,47 +66,105 @@
         // 循环PCM数据并计算平均值
         // 给定2048样本缓冲区的体积
         processor.onaudioprocess = function (evt) {
-          var input = evt.inputBuffer.getChannelData(0),
-            len = input.length,
-            total = (i = 0),
-            rms;
-          while (i < len) total += Math.abs(input[i++]);
-          rms = Math.sqrt(total / len);
+          {
+            let gcd = evt.inputBuffer.getChannelData(0),
+              len = gcd.length,
+              total = (i = 0),
+              rms;
+            while (i < len) {
+              total += Math.abs(gcd[i++]);
+            }
+            rms = Math.sqrt(total / len);
 
-          // console.log(input, rms, rms * 100);
-          range.value = rms * 1000;
+            // console.log(input, rms, rms * 100);
+            F.value = rms * 100;
+            R.value = rms * 100;
+
+            console.log(evt.inputBuffer)
+
+            
+            console.log('音频通道数量：', evt.inputBuffer.numberOfChannels)
+
+          }
+
+          // {
+          //   let left = evt.inputBuffer.getChannelData(0);
+          //   let right = evt.inputBuffer.getChannelData(1);
+
+          //   console.lg(left, right, evt.inputBuffer.getChannelData());
+          //   // 对左右声道进行处理
+          //   // 例如，计算音量大小
+          //   for (let i = 0; i < left.length; i++) {
+          //     audioData[0][i] = left[i];
+          //     audioData[1][i] = right[i];
+          //   }
+          //   console.log(audioData);
+          // }
         };
+
+        {
+          const channels = 2;
+          //  以AudioContext的采样率创建一个空的两秒立体声缓冲区
+          const frameCount = audioCtx.sampleRate * 2.0;
+          const myArrayBuffer = audioCtx.createBuffer(
+            channels,
+            frameCount,
+            audioCtx.sampleRate
+          );
+
+          button.onclick = function () {
+            //用白噪声填充缓冲区；
+            //只是-1.0和1.0之间的随机值
+            for (var channel = 0; channel < channels; channel++) {
+              //这为我们提供了包含数据的实际ArrayBuffer
+              var nowBuffering = myArrayBuffer.getChannelData(channel);
+              for (var i = 0; i < frameCount; i++) {
+                //Math.random（）在[0；1.0]中
+                //音频需要在[-1.0；1.0]中
+                nowBuffering[i] = Math.random() * 2 - 1;
+              }
+            }
+            console.log(myArrayBuffer.numberOfChannels);
+          };
+        }
       }
-    </script>
 
-    <script type="text/javascript">
-      var tank = new Audio("http://qianduannotes.duapp.com/file/tankWar.mp3");
-      tank.loop = true;
-      var mario = new Audio(
-        "http://qianduannotes.duapp.com/file/SuperMario.mp3"
-      );
-      mario.loop = true;
+      {
+        // 创建一个AudioContext
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
 
-      var AudioContext = AudioContext || webkitAudioContext;
-      var context = new AudioContext();
-      var source1 = context.createMediaElementSource(tank);
-      var source2 = context.createMediaElementSource(mario);
-      var gain1 = context.createGain();
-      var gain2 = context.createGain(); //连接：source → gain → destination    source1.connect(gain1);
-      source2.connect(gain2);
-      gain1.connect(context.destination);
-      gain2.connect(context.destination); //音量控制
-      var value;
-      onload = volume.onchange = function () {
-        gain1.gain.value = volume.value / 100;
-        gain2.gain.value = 1 - volume.value / 100;
-      };
+        // 加载音频资源
+        fetch("./media/AAC-5.1.mp4")
+          .then((response) => {
+            return response.arrayBuffer();
+          })
+          .then((arrayBuffer) => {
+            return ac.decodeAudioData(arrayBuffer);
+          })
+          .then((audioBuffer) => {
+            // 获取音频源并创建两个独立的音频源
+            let sourceLeft = ac.createBufferSource();
+            // let sourceRight = ac.createBufferSource();
 
-      tank.onload = mario.onlond = function () {
-        console.log("var1, var2");
-      };
-      tank.play();
-      mario.play();
+            // 分别将音频数据赋值给左右两个音频源
+            sourceLeft.buffer = audioBuffer;
+            // sourceRight.buffer = audioBuffer;
+
+            // 创建两个分轨并分别连接至音频源
+            let trackLeft = ac.createGain();
+            // let trackRight = ac.createGain();
+
+            sourceLeft.connect(trackLeft);
+            // sourceRight.connect(trackRight);
+
+            trackLeft.connect(ac.destination);
+            // trackRight.connect(ac.destination);
+
+            // 开始播放
+            // sourceLeft.start();
+            // sourceRight.start();
+          });
+      }
     </script>
   </body>
 </html>
