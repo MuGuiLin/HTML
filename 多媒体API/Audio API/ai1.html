@@ -31,15 +31,6 @@
       let leftChannelLevel = document.getElementById("leftChannelLevel");
       let rightChannelLevel = document.getElementById("rightChannelLevel");
 
-      // 更新音频响度的函数
-      function updateAudioLevel() {
-        requestAnimationFrame(updateAudioLevel);
-        analyserNode.getByteTimeDomainData(dataArray);
-        leftChannelLevel.textContent = calculateLevel(dataArray, 0);
-        rightChannelLevel.textContent = calculateLevel(dataArray, 1);
-        console.log(dataArray)
-      }
-
       // 计算音频响度的函数
       function calculateLevel(array, channel) {
         let sum = 0;
@@ -47,6 +38,20 @@
           sum += array[i];
         }
         return (sum / array.length) * channel;
+      }
+
+      // 更新音频响度的函数
+      function updateAudioLevel() {
+        requestAnimationFrame(updateAudioLevel);
+        analyserNode.getByteTimeDomainData(dataArray);
+        leftChannelLevel.textContent = calculateLevel(dataArray, 0);
+        rightChannelLevel.textContent = calculateLevel(dataArray, 1);
+        console.log(
+        calculateLevel(dataArray, 2),
+        calculateLevel(dataArray, 3),
+        calculateLevel(dataArray, 4),
+        calculateLevel(dataArray, 5),
+        calculateLevel(dataArray, 6))
       }
 
       // 开始监听音频响度

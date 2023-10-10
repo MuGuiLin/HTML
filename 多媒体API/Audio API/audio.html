@@ -69,99 +69,72 @@
       }
 
       {
+        var audioCtx = new AudioContext();
+        // var url = './media/hlbb.mp3';
+        // var audio = new Audio(url);
         const audio = document.querySelector("audio");
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
 
-       
+        var processor = audioCtx.createScriptProcessor(2048, 1, 1);
+        var meter = document.getElementById("meter");
+        var source;
 
-        const source = ac.createMediaElementSource(audio);
+        audio.addEventListener(
+          "canplaythrough",
+          function () {
+            source = audioCtx.createMediaElementSource(audio);
+            source.connect(processor);
+            source.connect(audioCtx.destination);
+            processor.connect(audioCtx.destination);
 
-        const splitter = new ChannelSplitterNode(ac, {
-          numberOfOutputs: 2, // 默认6
-        });
-        source.connect(splitter);
+            audio.play();
+          },
+          false
+        );
 
-         ac.decodeAudioData(someStereoBuffer, (data) => {
-          const source = ac.createBufferSource();
-          source.buffer = data;
-          const splitter = ac.createChannelSplitter(2);
-          source.connect(splitter);
-          const merger = ac.createChannelMerger(2);
+        // 循环PCM数据并计算平均值
+        // 给定2048样本缓冲区的体积
+        processor.onaudioprocess = function (evt) {
+          var input = evt.inputBuffer.getChannelData(0),
+            len = input.length,
+            total = (i = 0),
+            rms;
+          while (i < len) total += Math.abs(input[i++]);
+          rms = Math.sqrt(total / len);
 
-          // 仅减小左声道的音量
-          const gainNode = ac.createGain();
-          gainNode.gain.setValueAtTime(0.5, ac.currentTime);
-          splitter.connect(gainNode, 0);
-
-          //将拆分器连接回合并的第二个输入：我们有效地交换通道，在这里，反转立体图像。
-          gainNode.connect(merger, 0, 1);
-          splitter.connect(merger, 1, 0);
-
-          const dest = ac.createMediaStreamDestination();
-
-          // 因为我们使用了ChannelMergerNode，所以现在我们有了立体声
-          //我们可以使用MediaStream将Web音频图管道传输到WebRTC，
-          //MediaRecorder等。
-          merger.connect(dest);
-        });
-
-        console.log(splitter);
-
-        //   ac.decodeAudioData(someStereoBuffer, function (data) {
-        //     var source = ac.createBufferSource();
-        //     source.buffer = data;
-        //     var splitter = ac.createChannelSplitter(2);
-        //     source.connect(splitter);
-        //     var merger = ac.createChannelMerger(2);
-
-        //     // Reduce the volume of the left channel only
-        //     var gainNode = ac.createGain();
-        //     gainNode.gain.value = 0.5;
-        //     splitter.connect(gainNode, 0);
-
-        //     // Connect the splitter back to the second input of the merger: we
-        //     // effectively swap the channels, here, reversing the stereo image.
-        //     gainNode.connect(merger, 0, 1);
-        //     splitter.connect(merger, 1, 0);
-
-        //     var dest = ac.createMediaStreamDestination();
-
-        //     // Because we have used a ChannelMergerNode, we now have a stereo
-        //     // MediaStream we can use to pipe the Web Audio graph to WebRTC,
-        //     // MediaRecorder, etc.
-        //     merger.connect(dest);
-        //   });
+          // console.log(input, rms, rms * 100);
+          range.value = rms * 1000;
+        };
       }
     </script>
 
     <script type="text/javascript">
-      //   var tank = new Audio("http://qianduannotes.duapp.com/file/tankWar.mp3");
-      //   tank.loop = true;
-      //   var mario = new Audio(
-      //     "http://qianduannotes.duapp.com/file/SuperMario.mp3"
-      //   );
-      //   mario.loop = true;
+      var tank = new Audio("http://qianduannotes.duapp.com/file/tankWar.mp3");
+      tank.loop = true;
+      var mario = new Audio(
+        "http://qianduannotes.duapp.com/file/SuperMario.mp3"
+      );
+      mario.loop = true;
 
-      //   var AudioContext = AudioContext || webkitAudioContext;
-      //   var context = new AudioContext();
-      //   var source1 = context.createMediaElementSource(tank);
-      //   var source2 = context.createMediaElementSource(mario);
-      //   var gain1 = context.createGain();
-      //   var gain2 = context.createGain(); //连接：source → gain → destination    source1.connect(gain1);
-      //   source2.connect(gain2);
-      //   gain1.connect(context.destination);
-      //   gain2.connect(context.destination); //音量控制
-      //   var value;
-      //   onload = volume.onchange = function () {
-      //     gain1.gain.value = volume.value / 100;
-      //     gain2.gain.value = 1 - volume.value / 100;
-      //   };
+      var AudioContext = AudioContext || webkitAudioContext;
+      var context = new AudioContext();
+      var source1 = context.createMediaElementSource(tank);
+      var source2 = context.createMediaElementSource(mario);
+      var gain1 = context.createGain();
+      var gain2 = context.createGain(); //连接：source → gain → destination    source1.connect(gain1);
+      source2.connect(gain2);
+      gain1.connect(context.destination);
+      gain2.connect(context.destination); //音量控制
+      var value;
+      onload = volume.onchange = function () {
+        gain1.gain.value = volume.value / 100;
+        gain2.gain.value = 1 - volume.value / 100;
+      };
 
-      //   tank.onload = mario.onlond = function () {
-      //     console.log("var1, var2");
-      //   };
-      //   tank.play();
-      //   mario.play();
+      tank.onload = mario.onlond = function () {
+        console.log("var1, var2");
+      };
+      tank.play();
+      mario.play();
     </script>
   </body>
 </html>
