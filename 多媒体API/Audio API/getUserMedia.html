@@ -54,8 +54,7 @@
             .getUserMedia({ video: true, audio: true })
             .then(function (stream) {
               let audioContext = new AudioContext();
-              let audioDestination =
-                audioContext.createMediaStreamDestination();
+              let audioDestination = audioContext.createMediaStreamDestination();
               let audioTracks = stream.getAudioTracks();
 
               for (let i = 0; i < audioTracks.length; i++) {

@@ -20,23 +20,20 @@
 
     <br />
     <br />
-
+    <button type="button" id="LBTN">静音左声道</button>
     <input type="range" id="L" min="0" max="100" />
     <audio mute controls>
       <source src="./media/hlbb.mp3" type="audio/mp3" />
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
+    <button type="button" id="PBTN">音频播放</button>
     <video mute controls width="500">
       <source src="./media/hero.mp4" type="video/mp4" />
       <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
     </video>
     <input type="range" id="R" min="0" max="100" />
 
-    <button type="button" id="button">查看音频通道数量</button>
-
-    <button type="button" id="LBTN">静音左声道</button>
-    <button type="button" id="PBTN">音频播放</button>
     <button type="button" id="RBTN">静音右声道</button>
     <script>
       {
@@ -105,70 +102,6 @@
         };
 
         {
-          const channels = 6;
-          //  以AudioContext的采样率创建一个空的两秒立体声缓冲区
-          const frameCount = audioCtx.sampleRate * 2.0;
-          const myArrayBuffer = audioCtx.createBuffer(
-            channels,
-            frameCount,
-            audioCtx.sampleRate
-          );
-
-          button.onclick = function () {
-            //用白噪声填充缓冲区；
-            //只是-1.0和1.0之间的随机值
-            for (var channel = 0; channel < channels; channel++) {
-              //这为我们提供了包含数据的实际ArrayBuffer
-              var nowBuffering = myArrayBuffer.getChannelData(channel);
-              for (var i = 0; i < frameCount; i++) {
-                //Math.random（）在[0；1.0]中
-                //音频需要在[-1.0；1.0]中
-                nowBuffering[i] = Math.random() * 2 - 1;
-              }
-            }
-            console.log(myArrayBuffer.numberOfChannels);
-          };
-        }
-      }
-
-      {
-        // 创建一个AudioContext
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-
-        // 加载音频资源
-        fetch("./media/AAC-5.1.mp4")
-          .then((response) => {
-            return response.arrayBuffer();
-          })
-          .then((arrayBuffer) => {
-            return ac.decodeAudioData(arrayBuffer);
-          })
-          .then((audioBuffer) => {
-            // 获取音频源并创建两个独立的音频源
-            let sourceLeft = ac.createBufferSource();
-            // let sourceRight = ac.createBufferSource();
-
-            // 分别将音频数据赋值给左右两个音频源
-            sourceLeft.buffer = audioBuffer;
-            // sourceRight.buffer = audioBuffer;
-
-            // 创建两个分轨并分别连接至音频源
-            let trackLeft = ac.createGain();
-            // let trackRight = ac.createGain();
-
-            sourceLeft.connect(trackLeft);
-            // sourceRight.connect(trackRight);
-
-            trackLeft.connect(ac.destination);
-            // trackRight.connect(ac.destination);
-
-            // 开始播放
-            // sourceLeft.start();
-            // sourceRight.start();
-          });
-      }
-
-      {
         const audioElement = new Audio("./media/202107.mp4");
         audioElement.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
 
@@ -232,6 +165,46 @@
           console.log(volumeNodeR.gain.value);
         };
       }
+      }
+
+      {
+        // 创建一个AudioContext
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 加载音频资源
+        fetch("./media/AAC-5.1.mp4")
+          .then((response) => {
+            return response.arrayBuffer();
+          })
+          .then((arrayBuffer) => {
+            return ac.decodeAudioData(arrayBuffer);
+          })
+          .then((audioBuffer) => {
+            // 获取音频源并创建两个独立的音频源
+            let sourceLeft = ac.createBufferSource();
+            // let sourceRight = ac.createBufferSource();
+
+            // 分别将音频数据赋值给左右两个音频源
+            sourceLeft.buffer = audioBuffer;
+            // sourceRight.buffer = audioBuffer;
+
+            // 创建两个分轨并分别连接至音频源
+            let trackLeft = ac.createGain();
+            // let trackRight = ac.createGain();
+
+            sourceLeft.connect(trackLeft);
+            // sourceRight.connect(trackRight);
+
+            trackLeft.connect(ac.destination);
+            // trackRight.connect(ac.destination);
+
+            // 开始播放
+            // sourceLeft.start();
+            // sourceRight.start();
+          });
+      }
+
+     
     </script>
   </body>
 </html>
