@@ -41,14 +41,12 @@
 
         // const audio = new Audio('./media/hlbb.mp3');
 
-        const audio = document.querySelector("audio");
+        // const audio = document.querySelector("audio");
 
-        // const audio = document.querySelector("video");
+        const audio = document.querySelector("video");
 
         const L = document.querySelector("#L");
         const R = document.querySelector("#R");
-
-        const processor = ac.createScriptProcessor(2048, 1, 1);
 
         let source;
         let audioData = [];
@@ -68,23 +66,30 @@
 
         audio.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
 
-        const channelsCount = 2; // or read from: 'audioSource.channelCount'
+        const channelCount = 2; // or read from: 'audioSource.channelCount'
 
         const audioSource = ac.createMediaElementSource(audio);
 
+        const processor = ac.createScriptProcessor(2048, 1, 1);
+
         audioSource.connect(processor);
+        // audioSource.connect(ac.destination);
         processor.connect(ac.destination);
 
         const volumeNodeL = new GainNode(ac);
+        const volumeNodeR = new GainNode(ac);
+
         volumeNodeL.gain.value = 2;
+        volumeNodeR.gain.value = 2;
+
+        // 通道分配器
         const splitterNode = new ChannelSplitterNode(ac, {
-          numberOfOutputs: channelsCount,
+          numberOfOutputs: channelCount,
         });
 
-        const volumeNodeR = new GainNode(ac);
-        volumeNodeR.gain.value = 2;
+        // 通道合并器
         const mergerNode = new ChannelMergerNode(ac, {
-          numberOfInputs: channelsCount,
+          numberOfInputs: channelCount,
         });
 
         audioSource.connect(splitterNode);
@@ -116,7 +121,8 @@
 
             // console.log(evt.inputBuffer);
 
-            // console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
+            console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
+            console.log("音频通道数量：", evt.inputBuffer.getChannelData(1));
           }
 
           // {
