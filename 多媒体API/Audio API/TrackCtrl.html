@@ -29,7 +29,7 @@
     </audio>
     <button type="button" id="PBTN">音频播放</button>
     <video mute controls width="500">
-      <source src="./media/hero.mp4" type="video/mp4" />
+      <source src="./media//202107.mp4" type="video/mp4" />
       <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
     </video>
     <input type="range" id="R" min="0" max="100" />
@@ -37,32 +37,65 @@
     <button type="button" id="RBTN">静音右声道</button>
     <script>
       {
-        var audioCtx = new AudioContext();
-        // var url = './media/hlbb.mp3';
-        // var audio = new Audio(url);
-        // const audio = document.querySelector("audio");
-        const audio = document.querySelector("video");
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        // const audio = new Audio('./media/hlbb.mp3');
+
+        const audio = document.querySelector("audio");
+
+        // const audio = document.querySelector("video");
 
         const L = document.querySelector("#L");
         const R = document.querySelector("#R");
 
-        const processor = audioCtx.createScriptProcessor(2048, 1, 1);
+        const processor = ac.createScriptProcessor(2048, 1, 1);
 
         let source;
         let audioData = [];
 
-        audio.addEventListener(
-          "canplaythrough", // loadedmetadata
-          function () {
-            source = audioCtx.createMediaElementSource(audio);
-            source.connect(processor);
-            source.connect(audioCtx.destination);
-            processor.connect(audioCtx.destination);
+        // audio.addEventListener(
+        //   "canplaythrough", // loadedmetadata
+        //   function () {
+        //     source = ac.createMediaElementSource(audio);
+        //     source.connect(processor);
+        //     source.connect(ac.destination);
+        //     processor.connect(ac.destination);
 
-            audio.play();
-          },
-          false
-        );
+        //     audio.play();
+        //   },
+        //   false
+        // );
+
+        audio.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
+
+        const channelsCount = 2; // or read from: 'audioSource.channelCount'
+
+        const audioSource = ac.createMediaElementSource(audio);
+
+        audioSource.connect(processor);
+        processor.connect(ac.destination);
+
+        const volumeNodeL = new GainNode(ac);
+        volumeNodeL.gain.value = 2;
+        const splitterNode = new ChannelSplitterNode(ac, {
+          numberOfOutputs: channelsCount,
+        });
+
+        const volumeNodeR = new GainNode(ac);
+        volumeNodeR.gain.value = 2;
+        const mergerNode = new ChannelMergerNode(ac, {
+          numberOfInputs: channelsCount,
+        });
+
+        audioSource.connect(splitterNode);
+
+        splitterNode.connect(volumeNodeL, 0); // connect OUTPUT channel 0
+        splitterNode.connect(volumeNodeR, 1); // connect OUTPUT channel 1
+
+        volumeNodeL.connect(mergerNode, 0, 0); // connect INPUT channel 0
+        volumeNodeR.connect(mergerNode, 0, 1); // connect INPUT channel 1
+
+        mergerNode.connect(ac.destination);
 
         // 循环PCM数据并计算平均值
         // 给定2048样本缓冲区的体积
@@ -102,69 +135,37 @@
         };
 
         {
-        const audioElement = new Audio("./media/202107.mp4");
-        audioElement.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
+          //   const audio = new Audio("./media/202107.mp4");
 
-        const audioContext = new AudioContext();
+          let isPlaying;
+          function playPause() {
+            // check if context is in suspended state (autoplay policy)
+            if (ac.state === "suspended") {
+              ac.resume();
+            }
 
-        const audioSource = audioContext.createMediaElementSource(audioElement);
-
-        const volumeNodeL = new GainNode(audioContext);
-        const volumeNodeR = new GainNode(audioContext);
-
-        volumeNodeL.gain.value = 2;
-        volumeNodeR.gain.value = 2;
-
-        const channelsCount = 2; // or read from: 'audioSource.channelCount'
-
-        const splitterNode = new ChannelSplitterNode(audioContext, {
-          numberOfOutputs: channelsCount,
-        });
-        const mergerNode = new ChannelMergerNode(audioContext, {
-          numberOfInputs: channelsCount,
-        });
-
-        audioSource.connect(splitterNode);
-
-        splitterNode.connect(volumeNodeL, 0); // connect OUTPUT channel 0
-        splitterNode.connect(volumeNodeR, 1); // connect OUTPUT channel 1
-
-        volumeNodeL.connect(mergerNode, 0, 0); // connect INPUT channel 0
-        volumeNodeR.connect(mergerNode, 0, 1); // connect INPUT channel 1
-
-        mergerNode.connect(audioContext.destination);
-
-        let isPlaying;
-        function playPause() {
-          // check if context is in suspended state (autoplay policy)
-          if (audioContext.state === "suspended") {
-            audioContext.resume();
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+              audio.play();
+            } else {
+              audio.pause();
+            }
           }
 
-          isPlaying = !isPlaying;
-          if (isPlaying) {
-            audioElement.play();
-          } else {
-            audioElement.pause();
-          }
+          LBTN.onclick = function () {
+            volumeNodeL.gain.value = Number(!volumeNodeL.gain.value);
+            console.log(volumeNodeL.gain.value);
+          };
+
+          PBTN.onclick = function () {
+            playPause();
+          };
+
+          RBTN.onclick = function () {
+            volumeNodeR.gain.value = Number(!volumeNodeR.gain.value);
+            console.log(volumeNodeR.gain.value);
+          };
         }
-
-        function setBalance(val) {}
-
-        LBTN.onclick = function () {
-          volumeNodeL.gain.value = Number(!volumeNodeL.gain.value);
-          console.log(volumeNodeL.gain.value);
-        };
-
-        PBTN.onclick = function () {
-          playPause();
-        };
-
-        RBTN.onclick = function () {
-          volumeNodeR.gain.value = Number(!volumeNodeR.gain.value);
-          console.log(volumeNodeR.gain.value);
-        };
-      }
       }
 
       {
@@ -203,8 +204,6 @@
             // sourceRight.start();
           });
       }
-
-     
     </script>
   </body>
 </html>
