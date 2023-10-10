@@ -1,5 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body{ padding: 100px; }
+      input[type="range"] {
+        transform: rotate(-90deg);
+      }
+    </style>
+  </head>
   <body>
     <video id="myVideo" width="320" height="240" controls>
       <source src="./media/202107.mp4" type="video/mp4" />
@@ -79,9 +90,21 @@
           }, 1); // 从第一个（左）声道开始遍历
           isPlayingLeft = false;
         }
-      }
+      };
+
       function pauseLeft() {
-        // 控制右声道的播放和暂停的方法类似，只需更改声道的索引即可，这里不再赘述。
+        // 控制右声道的播放和暂停的方法类似，只需更改声道的索引即可，
+        if (!isPlayingRight) {
+          analyserNode.forEachChannel(function (channel) {
+            channel.start(); //播放右声道音频流
+          }, 2); // 从第二个（右）声道开始遍历
+          isPlayingRight = true;
+        } else {
+          analyserNode.forEachChannel(function (channel) {
+            channel.stop(); //暂停右声道音频流
+          }, 2); // 从第二个（右）声道开始遍历
+          isPlayingRight = false;
+        }
       }
     </script>
   </body>
