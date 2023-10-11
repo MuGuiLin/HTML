@@ -47,6 +47,7 @@
     </label>
     <script>
       let oscillatorType = "sine";
+      
       {
         let ac = null;
         try {
@@ -55,7 +56,7 @@
           alert("请更新至最新版的 Chrome 或者 Firefox");
         }
 
-        //为每个键盘位对应一个音频率
+        // 为每个键盘位对应一个音频率
         const audio = {
           65: 256,
           83: 288,
@@ -68,16 +69,16 @@
         };
         const temp = { ...audio };
 
-        //为每个频率创建一个Oscillator
+        // 为每个频率创建一个Oscillator
 
         for (let i in audio)
           (value = audio[i]),
-            (audio[i] = ac.createOscillator()), //音频音调
+            (audio[i] = ac.createOscillator()), // 振荡器，它产生一个周期的波形信号（如正弦波）
             (audio[i].type = oscillatorType),
             (audio[i].frequency.value = value),
             audio[i].start();
 
-        //键盘按下时将相应频率的Oscillator连接到输出源上
+        // 键盘按下时将相应频率的Oscillator连接到输出源上
         addEventListener("keydown", function (e) {
           h1.innerText = `按键值：${e.keyCode}，音频率：${
             temp[e.keyCode] || "---"
@@ -87,7 +88,7 @@
           }
         });
 
-        //键盘松开时将相应频率的Oscillator的连接取消
+        // 键盘松开时将相应频率的Oscillator的连接取消
         addEventListener("keyup", function (e) {
           if ((e = audio[e.keyCode])) e.disconnect();
         });
