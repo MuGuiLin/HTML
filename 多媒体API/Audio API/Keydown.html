@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keydown</title>
+    <style>
+      body {
+        padding: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Keydown</h1>
+    <hr />
+    <p>
+      本质并不是从键盘获取，而是通过键盘获取到我们设定的频率值，然后通过程序创建一段音频。如下实例：该例子中可以按键盘上中间的一排按键（A到K）来发出不同的声音。
+    </p>
+    <label>
+      波形声调基本类型：<select id="select">
+        <option value="sine">sine - 正弦波</option>
+        <option value="square">square - 方波</option>
+        <option value="sawtooth">sawtooth - 锯齿波</option>
+        <option value="triangle">triangle - 三角波</option>
+      </select>
+      <img src="./img/波形类型.png" alt="波形类型" />
+      <h3>A，S，D，F，G，H，J，K</h3>
+      <h1 id="h1"></h1>
+
+      <br />
+      <hr />
+      <br />
+      <p>
+        在以下输入框中输入不同的数值以发出不同的声音。
+      </p>
+      <p>
+        <input
+          type="number"
+          id="frequency"
+          min="1"
+          value="256"
+          placeholder="请输入音频率（数字类型）"
+        />
+        <button id="play">播放/暂停-音频率</button>
+      </p>
+    </label>
+    <script>
+      let oscillatorType = "sine";
+      {
+        let ac = null;
+        try {
+          ac = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          alert("请更新至最新版的 Chrome 或者 Firefox");
+        }
+
+        //为每个键盘位对应一个音频率
+        const audio = {
+          65: 256,
+          83: 288,
+          68: 320,
+          70: 341,
+          71: 384,
+          72: 426,
+          74: 480,
+          75: 512,
+        };
+        const temp = { ...audio };
+
+        //为每个频率创建一个Oscillator
+
+        for (let i in audio)
+          (value = audio[i]),
+            (audio[i] = ac.createOscillator()), //音频音调
+            (audio[i].type = oscillatorType),
+            (audio[i].frequency.value = value),
+            audio[i].start();
+
+        //键盘按下时将相应频率的Oscillator连接到输出源上
+        addEventListener("keydown", function (e) {
+          h1.innerText = `按键值：${e.keyCode}，音频率：${
+            temp[e.keyCode] || "---"
+          }`;
+          if ((e = audio[e.keyCode])) {
+            e.connect(ac.destination);
+          }
+        });
+
+        //键盘松开时将相应频率的Oscillator的连接取消
+        addEventListener("keyup", function (e) {
+          if ((e = audio[e.keyCode])) e.disconnect();
+        });
+
+        select.addEventListener("change", function () {
+          for (let i in audio) audio[i].type = this.value;
+        });
+      }
+
+      {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = ac.createOscillator();
+        let isPlay = true;
+
+        oscillator.type = oscillatorType;
+        oscillator.frequency.setValueAtTime(256, ac.currentTime); // 以赫兹为单位的值
+        oscillator.connect(ac.destination);
+        oscillator.start();
+        console.dir(oscillator);
+
+        frequency.onchange = function () {
+          const value = this.value || 1;
+          oscillator.frequency.setValueAtTime(value, ac.currentTime);
+        };
+
+        play.onclick = () => {
+          // isPlay ? oscillator.stop() : oscillator.start();
+          isPlay ? oscillator.disconnect() : oscillator.connect(ac.destination);
+          isPlay = !isPlay;
+        };
+      }
+    </script>
+  </body>
+</html>

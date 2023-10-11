@@ -35,6 +35,12 @@
     <input type="range" id="R" min="0" max="100" />
 
     <button type="button" id="RBTN">静音右声道</button>
+
+    <video id="video2" mute controls width="500">
+      <source src="./media//202107.mp4" type="video/mp4" />
+      <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
+    </video>
+    <canvas id="canvas"></canvas>
     <script>
       {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -173,7 +179,36 @@
           };
         }
 
-       
+        {
+          let audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+          let analyser = audioContext.createAnalyser();
+
+          let videoElement = document.getElementById("video2");
+          let audioOutput = videoElement.audioOutput;
+          audioOutput.connect(analyser);
+          let bufferSize = analyser.frequencyBinCount;
+          let arrayLength = bufferSize;
+          let byteArray = new Uint8Array(arrayLength);
+          let canvas = document.getElementById("canvas"); // 你的Canvas元素
+          let canvasCtx = canvas.getContext("2d");
+          let drawRequest = new Image();
+          drawRequest.src = canvas.toDataURL();
+          drawRequest.onload = function () {
+            let image = drawRequest;
+            canvasCtx.drawImage(image, 0, 0);
+          };
+          let update = function () {
+            analyser.getByteTimeDomainData(byteArray);
+            let value = byteArray[0]; // 取第一个值，即音量值
+            let progress = value / 100.0; // 将音量值映射为进度条的比例值（这里为100）
+            canvasCtx.fillStyle =
+              "rgb(" + parseInt(progress * 255) + ",100,50)"; // 根据进度条的比例值改变颜色
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height); // 填充整个Canvas
+            requestAnimationFrame(update); // 持续更新进度条
+          };
+          update();
+        }
       }
 
       {

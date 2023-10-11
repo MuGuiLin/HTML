@@ -25,15 +25,17 @@
     <p>鼠标hover按钮无中生有播放声音。</p>
     <hr />
 
-    <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/AudioContext">Web Audio API - AudioContext</a>
+    <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/AudioContext"
+      >Web Audio API - AudioContext</a
+    >
     <br />
 
     <label>
       波形声调基本类型：<select>
-        <option>sine - 正弦波</option>
-        <option>square - 方波</option>
-        <option>sawtooth - 锯齿波</option>
-        <option>triangle - 三角波</option>
+        <option value="sine">sine - 正弦波</option>
+        <option value="square">square - 方波</option>
+        <option value="sawtooth">sawtooth - 锯齿波</option>
+        <option value="triangle">triangle - 三角波</option>
         <option>custom</option>
       </select>
       <img src="./img/波形类型.png" alt="" />
@@ -121,12 +123,15 @@
           // 音调从当前时间开始播放
           oscillator.start(audioCtx.currentTime);
           // 1秒内声音慢慢降低，是个不错的停止声音的方法
-          gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 1
+          );
 
           // 1秒后完全停止声音
           oscillator.stop(audioCtx.currentTime + 1);
 
-          console.log(audioCtx, oscillator, gainNode.gain, frequency,);
+          console.log(audioCtx, oscillator, gainNode.gain, frequency);
         }
         hover();
 
@@ -134,7 +139,8 @@
         document.querySelectorAll("button").forEach(function (o) {
           o.addEventListener("mouseenter", function () {
             hover();
-            this.style.background = color[parseInt(Math.random() * color.length - 1)];
+            this.style.background =
+              color[parseInt(Math.random() * color.length - 1)];
           });
         });
       })();
