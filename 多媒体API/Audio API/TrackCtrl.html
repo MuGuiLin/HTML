@@ -20,30 +20,32 @@
 
     <br />
     <br />
+
     <button type="button" id="LBTN">静音左声道</button>
     <input type="range" id="L" min="0" max="100" />
-    <audio mute controls>
+
+    <audio mute loop controls>
       <source src="./media/hlbb.mp3" type="audio/mp3" />
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
-    <button type="button" id="PBTN">音频播放</button>
-    <video mute controls width="500">
-      <source src="./media//202107.mp4" type="video/mp4" />
+    <video mute loop controls width="360">
+      <source src="./media/202107.mp4" type="video/mp4" />
       <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
     </video>
-    <input type="range" id="R" min="0" max="100" />
 
+    <input type="range" id="R" min="0" max="100" />
     <button type="button" id="RBTN">静音右声道</button>
+
     <script>
       {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
         // const audio = new Audio('./media/hlbb.mp3');
 
-        // const audio = document.querySelector("audio");
+        const audio = document.querySelector("audio");
 
-        const audio = document.querySelector("video");
+        // const audio = document.querySelector("video");
 
         const L = document.querySelector("#L");
         const R = document.querySelector("#R");
@@ -70,7 +72,7 @@
 
         const audioSource = ac.createMediaElementSource(audio);
 
-        const processor = ac.createScriptProcessor(2048, 1, 1);
+        const processor = ac.createScriptProcessor(2048, 2, 2);
 
         audioSource.connect(processor);
         // audioSource.connect(ac.destination);
@@ -105,37 +107,52 @@
         // 循环PCM数据并计算平均值
         // 给定2048样本缓冲区的体积
         processor.onaudioprocess = function (evt) {
+          console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
           {
-            let gcd = evt.inputBuffer.getChannelData(0),
-              len = gcd.length,
-              total = (i = 0),
-              rms;
-            while (i < len) {
-              total += Math.abs(gcd[i++]);
+            {
+              let gcd = evt.inputBuffer.getChannelData(0),
+                len = gcd.length,
+                total = (i = 0),
+                rms;
+              while (i < len) {
+                total += Math.abs(gcd[i++]);
+              }
+              rms = Math.sqrt(total / len);
+
+              if (volumeNodeL.gain.value) {
+                // console.log(input, rms, rms * 100);
+                L.value = rms * 100;
+              }
             }
-            rms = Math.sqrt(total / len);
 
-            // console.log(input, rms, rms * 100);
-            L.value = rms * 100;
-            R.value = rms * 100;
+            {
+              let gcd = evt.inputBuffer.getChannelData(1),
+                len = gcd.length,
+                total = (i = 0),
+                rms;
+              while (i < len) {
+                total += Math.abs(gcd[i++]);
+              }
+              rms = Math.sqrt(total / len);
 
-            // console.log(evt.inputBuffer);
-
-            console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
-            console.log("音频通道数量：", evt.inputBuffer.getChannelData(1));
+              if (volumeNodeR.gain.value) {
+                R.value = rms * 100;
+              }
+            }
           }
 
           // {
           //   let left = evt.inputBuffer.getChannelData(0);
           //   let right = evt.inputBuffer.getChannelData(1);
 
-          //   console.lg(left, right, evt.inputBuffer.getChannelData());
           //   // 对左右声道进行处理
           //   // 例如，计算音量大小
           //   for (let i = 0; i < left.length; i++) {
           //     audioData[0][i] = left[i];
           //     audioData[1][i] = right[i];
           //   }
+
+          //   // console.log(left, right);
           //   console.log(audioData);
           // }
         };
@@ -163,17 +180,11 @@
             console.log(volumeNodeL.gain.value);
           };
 
-          PBTN.onclick = function () {
-            playPause();
-          };
-
           RBTN.onclick = function () {
             volumeNodeR.gain.value = Number(!volumeNodeR.gain.value);
             console.log(volumeNodeR.gain.value);
           };
         }
-
-       
       }
 
       {

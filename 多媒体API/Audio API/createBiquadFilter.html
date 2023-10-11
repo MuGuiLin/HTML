@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createBiquadFilter</title>
+    <style>
+      body {
+        padding: 100px;
+      }
+
+      input[type="button"]{
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>createBiquadFilter 滤波器</h1>
+    <hr />
+
+    <audio src="./media/hlbb.mp3" id="origin" controls ></audio>
+    <input type="button" onclick="origin.play()" value="原始音质 播放" />
+    <input type="button" onclick="origin.pause()" value="原始音源 暂停" />
+
+    <br />
+
+    <audio src="./media/hlbb.mp3" id="audio"></audio>
+    <input type="button" onclick="audio.play()" value="滤波音质 播放" />
+    <input type="button" onclick="audio.pause()" value="滤波音源 暂停" />
+
+    <label>
+      波形声调基本类型：<select id="select">
+        <option value="lowpass">lowpass - 低通滤波</option>
+        <option value="highpass">highpass - 高通滤波</option>
+        <option value="bandpass">bandpass - 带通滤波</option>
+      </select>
+
+    <script>
+      {
+        let ac = null;
+        try {
+          ac = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          alert("请更新至最新版的 Chrome 或者 Firefox");
+        }
+
+        // AudioContext 通过 createMediaElementSource 将 audio 的输出直接拉去到新的环境中，之前 audio 环境被破坏
+        const source = ac.createMediaElementSource(audio);
+
+        function FilterNode(type = 'lowpass') {
+          // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷）
+          let filterNode = ac.createBiquadFilter();
+
+          // sourceNode -> FilterNode -> destinationNode
+          source.connect(filterNode);
+
+          filterNode.connect(ac.destination);
+
+          // 拉去的 source 没有 start 函数，他会一直监听 audio 的操控，当 play 函数被触发的时候，开始播放音频。也可以认为，play 函数触发了 start
+        }
+
+        FilterNode();
+
+        select.addEventListener("change", function () {
+          FilterNode(this.value);
+        });
+      }
+    </script>
+  </body>
+</html>
