@@ -34,7 +34,11 @@
         <option value="lowpass">lowpass - 低通滤波</option>
         <option value="highpass">highpass - 高通滤波</option>
         <option value="bandpass">bandpass - 带通滤波</option>
-        <option value="">defaule - 带通滤波</option>
+        <option value="lowshelf">lowshelf - 滤波</option>
+        <option value="highshelf">highshelf - 滤波</option>
+        <option value="peaking">peaking - 滤波</option>
+        <option value="notch">notch - 标准陷波滤波</option>
+        <option value="allpass">allpass - 标准二阶全通滤波</option>
       </select>
 
     <script>
@@ -48,7 +52,7 @@
 
         const source = ac.createMediaElementSource(audio);
 
-        // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷）
+        // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷） // http://web.h3399.cn/BiquadFilterNode.htm
         const FilterNode = ac.createBiquadFilter("lowpass");
 
         // sourceNode -> FilterNode -> destinationNode
@@ -56,9 +60,10 @@
 
         FilterNode.connect(ac.destination);
 
-        console.log(FilterNode)
+        console.log('createBiquadFilter 过滤器：', FilterNode)
 
         select.addEventListener("change", function () {
+           console.log('createBiquadFilter 过滤器：', FilterNode)
           FilterNode.type = this.value;
         });
       }
