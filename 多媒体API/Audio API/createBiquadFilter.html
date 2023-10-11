@@ -34,6 +34,7 @@
         <option value="lowpass">lowpass - 低通滤波</option>
         <option value="highpass">highpass - 高通滤波</option>
         <option value="bandpass">bandpass - 带通滤波</option>
+        <option value="">defaule - 带通滤波</option>
       </select>
 
     <script>
@@ -45,25 +46,20 @@
           alert("请更新至最新版的 Chrome 或者 Firefox");
         }
 
-        // AudioContext 通过 createMediaElementSource 将 audio 的输出直接拉去到新的环境中，之前 audio 环境被破坏
         const source = ac.createMediaElementSource(audio);
 
-        function FilterNode(type = 'lowpass') {
-          // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷）
-          let filterNode = ac.createBiquadFilter();
+        // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷）
+        const FilterNode = ac.createBiquadFilter("lowpass");
 
-          // sourceNode -> FilterNode -> destinationNode
-          source.connect(filterNode);
+        // sourceNode -> FilterNode -> destinationNode
+        source.connect(FilterNode);
 
-          filterNode.connect(ac.destination);
+        FilterNode.connect(ac.destination);
 
-          // 拉去的 source 没有 start 函数，他会一直监听 audio 的操控，当 play 函数被触发的时候，开始播放音频。也可以认为，play 函数触发了 start
-        }
-
-        FilterNode();
+        console.log(FilterNode)
 
         select.addEventListener("change", function () {
-          FilterNode(this.value);
+          FilterNode.type = this.value;
         });
       }
     </script>
