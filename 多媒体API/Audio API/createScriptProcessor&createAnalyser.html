@@ -33,7 +33,7 @@
     <button type="button" id="volume">全部静音</button>
 
     <video loop src="./media/AAC-5.1.mp4" controls ></video>
-
+  
     <br>
     左声道 <progress id="VUL" max="100" value="0"></progress><button type="button" id="VUL0">静音（L）</button>
     <br>
@@ -144,7 +144,7 @@
           ctx.fillStyle = 'rgb(200, 200, 200)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 1;
           ctx.strokeStyle = 'rgb(0, 0, 255)';
 
           ctx.beginPath();
@@ -231,8 +231,7 @@
         }
         requestAnimationFrame(timer)
       }
-
-      two2()
+      two2();
 
 
 

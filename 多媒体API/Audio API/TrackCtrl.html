@@ -17,36 +17,37 @@
 
   <body>
     <h1>Web Audio API examples: createScriptProcessor()</h1>
+    <hr />
 
     <br />
     <br />
 
-    <button type="button" id="LBTN">静音左声道</button>
+    <button type="button" id="LBTN">静音左声道（L）</button>
     <input type="range" id="L" min="0" max="100" />
 
-    <audio mute loop controls>
+    <audio mute loop controls width="560">
       <source src="./media/hlbb.mp3" type="audio/mp3" />
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
    
     <input type="range" id="R" min="0" max="100" />
-    <button type="button" id="RBTN">静音右声道</button>
+    <button type="button" id="RBTN">静音右声道（R）</button>
 
     <br /><br /><br />
     <br /><br /><br />
 
     <div>
-      <button type="button" id="SLBTN">静音左后声道</button>
+      <button type="button" id="SLBTN">静音左环绕声道（SL）</button>
       <input type="range" id="SL" min="0" max="100" />
 
-      <video mute loop controls width="360">
-        <source src="./media/AAC-5.1.mp4" type="video/mp4" />
+      <video mute loop controls width="560">
+        <source src="./media/Project DT-5.1.mp4" type="video/mp4" />
         <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
       </video>
 
       <input type="range" id="SR" min="0" max="100" />
-      <button type="button" id="SRBTN">静音右后声道</button>
+      <button type="button" id="SRBTN">静音右环绕声道（SR）</button>
     </div>
 
     <script>
@@ -137,7 +138,7 @@
 
             if (volumeNodeL.gain.value) {
               // console.log(input, rms, rms * 100);
-              L.value = rms * 100;
+              L.value = rms * 200;
             }
           }
 
@@ -152,7 +153,7 @@
             rms = Math.sqrt(total / len);
 
             if (volumeNodeR.gain.value) {
-              R.value = rms * 100;
+              R.value = rms * 200;
             }
           }
 
@@ -167,7 +168,7 @@
             rms = Math.sqrt(total / len);
 
             if (volumeNodeSL.gain.value) {
-              SL.value = rms * 100;
+              SL.value = rms * 200;
             }
           }
 
@@ -182,7 +183,7 @@
             rms = Math.sqrt(total / len);
 
             if (volumeNodeSR.gain.value) {
-              SR.value = rms * 100;
+              SR.value = rms * 200;
             }
           }
         };
