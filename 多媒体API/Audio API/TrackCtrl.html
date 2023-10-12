@@ -29,13 +29,25 @@
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
-    <video mute loop controls width="360">
-      <source src="./media/202107.mp4" type="video/mp4" />
-      <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
-    </video>
-
+   
     <input type="range" id="R" min="0" max="100" />
     <button type="button" id="RBTN">静音右声道</button>
+
+    <br /><br /><br />
+    <br /><br /><br />
+
+    <div>
+      <button type="button" id="SLBTN">静音左后声道</button>
+      <input type="range" id="SL" min="0" max="100" />
+
+      <video mute loop controls width="360">
+        <source src="./media/AAC-5.1.mp4" type="video/mp4" />
+        <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
+      </video>
+
+      <input type="range" id="SR" min="0" max="100" />
+      <button type="button" id="SRBTN">静音右后声道</button>
+    </div>
 
     <script>
       {
@@ -43,12 +55,8 @@
 
         // const audio = new Audio('./media/hlbb.mp3');
 
-        const audio = document.querySelector("audio");
-
-        // const audio = document.querySelector("video");
-
-        const L = document.querySelector("#L");
-        const R = document.querySelector("#R");
+        // const audio = document.querySelector("audio");
+        const audio = document.querySelector("video");
 
         let source;
         let audioData = [];
@@ -68,22 +76,16 @@
 
         audio.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
 
-        const channelCount = 2; // or read from: 'audioSource.channelCount'
+        const channelCount = 4; // or read from: 'audioSource.channelCount'
 
         const audioSource = ac.createMediaElementSource(audio);
 
-        const processor = ac.createScriptProcessor(2048, 2, 2);
-
+        const processor = ac.createScriptProcessor(2048, 4, 4);
         audioSource.connect(processor);
         // audioSource.connect(ac.destination);
         processor.connect(ac.destination);
 
-        const volumeNodeL = new GainNode(ac);
-        const volumeNodeR = new GainNode(ac);
-
-        volumeNodeL.gain.value = 2;
-        volumeNodeR.gain.value = 2;
-
+   
         // 通道分配器
         const splitterNode = new ChannelSplitterNode(ac, {
           numberOfOutputs: channelCount,
@@ -94,13 +96,28 @@
           numberOfInputs: channelCount,
         });
 
+
+        const volumeNodeL = new GainNode(ac);
+        const volumeNodeR = new GainNode(ac);
+        const volumeNodeSL = new GainNode(ac);
+        const volumeNodeSR = new GainNode(ac);
+
+        volumeNodeL.gain.value = 2;
+        volumeNodeR.gain.value = 2;
+        volumeNodeSL.gain.value = 2;
+        volumeNodeSR.gain.value = 2;
+
         audioSource.connect(splitterNode);
 
         splitterNode.connect(volumeNodeL, 0); // connect OUTPUT channel 0
         splitterNode.connect(volumeNodeR, 1); // connect OUTPUT channel 1
+        splitterNode.connect(volumeNodeSL, 2); // connect OUTPUT channel 2
+        splitterNode.connect(volumeNodeSR, 3); // connect OUTPUT channel 3
 
         volumeNodeL.connect(mergerNode, 0, 0); // connect INPUT channel 0
         volumeNodeR.connect(mergerNode, 0, 1); // connect INPUT channel 1
+        volumeNodeSL.connect(mergerNode, 0, 2); // connect INPUT channel 2
+        volumeNodeSR.connect(mergerNode, 0, 3); // connect INPUT channel 3
 
         mergerNode.connect(ac.destination);
 
@@ -109,52 +126,65 @@
         processor.onaudioprocess = function (evt) {
           console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
           {
-            {
-              let gcd = evt.inputBuffer.getChannelData(0),
-                len = gcd.length,
-                total = (i = 0),
-                rms;
-              while (i < len) {
-                total += Math.abs(gcd[i++]);
-              }
-              rms = Math.sqrt(total / len);
-
-              if (volumeNodeL.gain.value) {
-                // console.log(input, rms, rms * 100);
-                L.value = rms * 100;
-              }
+            let input = evt.inputBuffer.getChannelData(0),
+              len = input.length,
+              total = (i = 0),
+              rms;
+            while (i < len) {
+              total += Math.abs(input[i++]);
             }
+            rms = Math.sqrt(total / len);
 
-            {
-              let gcd = evt.inputBuffer.getChannelData(1),
-                len = gcd.length,
-                total = (i = 0),
-                rms;
-              while (i < len) {
-                total += Math.abs(gcd[i++]);
-              }
-              rms = Math.sqrt(total / len);
-
-              if (volumeNodeR.gain.value) {
-                R.value = rms * 100;
-              }
+            if (volumeNodeL.gain.value) {
+              // console.log(input, rms, rms * 100);
+              L.value = rms * 100;
             }
           }
 
-          // {
-          //   let left = evt.inputBuffer.getChannelData(0);
-          //   let right = evt.inputBuffer.getChannelData(1);
+          {
+            let input = evt.inputBuffer.getChannelData(1),
+              len = input.length,
+              total = (i = 0),
+              rms;
+            while (i < len) {
+              total += Math.abs(input[i++]);
+            }
+            rms = Math.sqrt(total / len);
 
-          //   // 对左右声道进行处理
-          //   // 例如，计算音量大小
-          //   for (let i = 0; i < left.length; i++) {
-          //     audioData[0][i] = left[i];
-          //     audioData[1][i] = right[i];
-          //   }
+            if (volumeNodeR.gain.value) {
+              R.value = rms * 100;
+            }
+          }
 
-          //   // console.log(left, right);
-          //   console.log(audioData);
-          // }
+          {
+            let input = evt.inputBuffer.getChannelData(2),
+              len = input.length,
+              total = (i = 0),
+              rms;
+            while (i < len) {
+              total += Math.abs(input[i++]);
+            }
+            rms = Math.sqrt(total / len);
+
+            if (volumeNodeSL.gain.value) {
+              SL.value = rms * 100;
+            }
+          }
+
+          {
+            let input = evt.inputBuffer.getChannelData(3),
+              len = input.length,
+              total = (i = 0),
+              rms;
+            while (i < len) {
+              total += Math.abs(input[i++]);
+            }
+            rms = Math.sqrt(total / len);
+
+            if (volumeNodeSR.gain.value) {
+              SR.value = rms * 100;
+            }
+          }
         };
 
         {
@@ -184,44 +214,17 @@
             volumeNodeR.gain.value = Number(!volumeNodeR.gain.value);
             console.log(volumeNodeR.gain.value);
           };
+
+          SLBTN.onclick = function () {
+            volumeNodeSL.gain.value = Number(!volumeNodeSL.gain.value);
+            console.log(volumeNodeSL.gain.value);
+          };
+
+          SRBTN.onclick = function () {
+            volumeNodeSR.gain.value = Number(!volumeNodeSR.gain.value);
+            console.log(volumeNodeSR.gain.value);
+          };
         }
-      }
-
-      {
-        // 创建一个AudioContext
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-
-        // 加载音频资源
-        fetch("./media/AAC-5.1.mp4")
-          .then((response) => {
-            return response.arrayBuffer();
-          })
-          .then((arrayBuffer) => {
-            return ac.decodeAudioData(arrayBuffer);
-          })
-          .then((audioBuffer) => {
-            // 获取音频源并创建两个独立的音频源
-            let sourceLeft = ac.createBufferSource();
-            // let sourceRight = ac.createBufferSource();
-
-            // 分别将音频数据赋值给左右两个音频源
-            sourceLeft.buffer = audioBuffer;
-            // sourceRight.buffer = audioBuffer;
-
-            // 创建两个分轨并分别连接至音频源
-            let trackLeft = ac.createGain();
-            // let trackRight = ac.createGain();
-
-            sourceLeft.connect(trackLeft);
-            // sourceRight.connect(trackRight);
-
-            trackLeft.connect(ac.destination);
-            // trackRight.connect(ac.destination);
-
-            // 开始播放
-            // sourceLeft.start();
-            // sourceRight.start();
-          });
       }
     </script>
   </body>

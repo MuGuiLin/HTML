@@ -49,22 +49,20 @@
           alert("请更新至最新版的 Chrome 或者 Firefox");
         }
       {
-       
         const source = ac.createMediaElementSource(audio);
 
         // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷） // http://web.h3399.cn/BiquadFilterNode.htm
-        const FilterNode = ac.createBiquadFilter("lowpass");
+        const filterNode = ac.createBiquadFilter("lowpass");
 
-        // sourceNode -> FilterNode -> destinationNode
-        source.connect(FilterNode);
+        source.connect(filterNode);
 
-        FilterNode.connect(ac.destination);
-
-        console.log('createBiquadFilter 过滤器：', FilterNode)
+        filterNode.connect(ac.destination);
+        
+        console.log('createBiquadFilter 过滤器：', filterNode)
 
         select.addEventListener("change", function () {
-          console.log('createBiquadFilter 过滤器：', FilterNode);
-          FilterNode.type = this.value;
+          console.log('createBiquadFilter 过滤器：', filterNode);
+          filterNode.type = this.value;
         });
       };
 
