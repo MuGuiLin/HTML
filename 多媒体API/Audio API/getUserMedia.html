@@ -14,76 +14,191 @@
     </style>
   </head>
   <body>
+    <label>
+      <input type="range" id="L" min="0" max="100" />
+      <b id="LV"></b>
+    </label>
+    <input type="range" id="R" min="0" max="100" />
+    <input type="range" id="SL" min="0" max="100" />
+    <input type="range" id="SR" min="0" max="100" />
+
     <script>
-      // let stream = null;
-      // navigator.mediaDevices
-      //   .getUserMedia({ video: true, audio: true })
-      //   .then(function (stream) {
-      //     this.stream = stream;
-      //     let audioContext = new AudioContext();
-      //     let scriptNode = audioContext.createScriptProcessor(2048);
-      //     scriptNode.onaudioprocess = function (e) {
-      //       let left = e.inputBuffer.getChannelData(0);
-      //       let right = e.inputBuffer.getChannelData(1);
-      //       // 对左右声道进行处理
-      //       // 例如，计算音量大小
-      //       let maxLeft = -Infinity;
-      //       let minLeft = Infinity;
-      //       let maxRight = -Infinity;
-      //       let minRight = Infinity;
-      //       for (let i = 0; i < left.length; i++) {
-      //         maxLeft = Math.max(maxLeft, left[i]);
-      //         minLeft = Math.min(minLeft, left[i]);
-      //         maxRight = Math.max(maxRight, right[i]);
-      //         minRight = Math.min(minRight, right[i]);
-      //       }
-      //       console.log("左声道最大音量：", maxLeft, "最小音量：", minLeft);
-      //       console.log("右声道最大音量：", maxRight, "最小音量：", minRight);
-      //     };
-      //     let recorder = new MediaRecorder(this.stream);
-      //     recorder.start();
-      //     this.scriptNode = scriptNode;
-      //   })
-      //   .catch(function (err) {
-      //     console.log("Error: ", err);
-      //   });
+      const L = document.querySelector("#L");
+      const R = document.querySelector("#R");
 
-      {
-        function run() {
-          navigator.mediaDevices
-            .getUserMedia({ video: true, audio: true })
-            .then(function (stream) {
-              let audioContext = new AudioContext();
-              let audioDestination = audioContext.createMediaStreamDestination();
-              let audioTracks = stream.getAudioTracks();
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
 
-              for (let i = 0; i < audioTracks.length; i++) {
-                let track = audioTracks[i];
-                track.enabled = true;
-                stream.addTrack(track);
-              }
-
-              let audioData = [];
-              audioDestination.stream = stream;
-              let scriptNode = audioContext.createScriptProcessor(2048, 1, 1);
-              scriptNode.onaudioprocess = function (e) {
-                let left = e.inputBuffer.getChannelData(0);
-                let right = e.inputBuffer.getChannelData(1);
-                // 对左右声道进行处理
-                // 例如，计算音量大小
-                for (let i = 0; i < left.length; i++) {
-                  audioData[0][i] = left[i];
-                  audioData[1][i] = right[i];
-                }
-              };
-              audioContext.resume();
-            })
-            .catch(function (err) {
-              console.log("Error: ", err);
-            });
+      function isTypeSupported(){
+        const types = [
+          "audio/webm",
+          "audio/webm;codecs=opus",
+          "video/webm",
+          "video/mpeg",
+          "video/webm;codecs=vp8",
+          "video/webm;codecs=daala",
+          "video/webm;codecs=h264",
+        ];
+        for (var i in types) {
+          console.log(`是否支持${ types[i]} 编解码器？${MediaRecorder.isTypeSupported(types[i]) ? true : false}`);
         }
+      };
+
+      function getMediaSuccess(stream) {
+        let audioDestination = ac.createMediaStreamDestination();
+        let audioTracks = stream.getAudioTracks();
+        console.log("声道数", audioTracks.length);
+
+        for (let i = 0; i < audioTracks.length; i++) {
+          let track = audioTracks[i];
+          track.enabled = true;
+          stream.addTrack(track);
+        }
+
+        let audioData = [];
+        audioDestination.stream = stream;
+
+        const scriptNode = ac.createScriptProcessor(2048, 1, 1);
+        scriptNode.onaudioprocess = function (e) {
+          let left = e.inputBuffer.getChannelData(0);
+          let right = e.inputBuffer.getChannelData(1);
+          // 对左右声道进行处理，如：计算音量大小
+          for (let i = 0; i < left.length; i++) {
+            audioData[0][i] = left[i];
+            audioData[1][i] = right[i];
+          }
+          console.log(audioData);
+        };
+        ac.resume();
       }
-      run();
+
+      function getMediaSuccess2(stream) {     
+        const Recorder = new MediaRecorder(stream, {
+          audioBitsPerSecond : 128000,  // 128kbps 音频比特率（默认比特率根据采样率和轨道数自适应）
+          videoBitsPerSecond : 2500000, // 2.5Mbps 视频比特率（默认：2.5Mbps）
+          mimeType : 'audio/webm',//  'video/webm'录制容器MIME类型
+        });
+        const scriptNode = ac.createScriptProcessor();
+        scriptNode.onaudioprocess = (e) => {
+            console.log(666, e)
+          let left = e.inputBuffer.getChannelData(0);
+          let right = e.inputBuffer.getChannelData(1);
+          // 对左右声道进行处理，如：计算音量大小
+          let maxLeft = -Infinity;
+          let minLeft = Infinity;
+          let maxRight = -Infinity;
+          let minRight = Infinity;
+          for (let i = 0; i < left.length; i++) {
+            maxLeft = Math.max(maxLeft, left[i]);
+            minLeft = Math.min(minLeft, left[i]);
+            maxRight = Math.max(maxRight, right[i]);
+            minRight = Math.min(minRight, right[i]);
+          }
+          console.log("左声道最大音量：", maxLeft, "最小音量：", minLeft);
+          console.log("右声道最大音量：", maxRight, "最小音量：", minRight);
+        };
+
+        
+        Recorder.start();
+        console.log(scriptNode,Recorder, 888);
+      }
+
+      function getMediaSuccess3(stream) {
+        // 创建一个新的MediaStreamAudioSourceNode 对象，使来自MediaStream的音频可以被播放和操作
+        const mediaSource = ac.createMediaStreamSource(stream);
+
+        // 创建一个用于通过JavaScript直接处理音频
+        const scriptProcessor = ac.createScriptProcessor(2048, 6, 6);
+
+        // filter为一个中间处理器，用来过滤音频
+        const filter = ac.createBiquadFilter();
+
+        // mediaSource -> filter -> destination.
+        mediaSource.connect(filter);
+
+        filter.connect(ac.destination);
+
+        scriptProcessor.onaudioprocess = (evt) => {
+          // console.log(evt.inputBuffer.getChannelData(0));
+          {
+            // outputBuffer
+            let gcd = evt.inputBuffer.getChannelData(0),
+              len = gcd.length,
+              total = (i = 0);
+
+            while (i < len) {
+             
+              total += Math.abs(gcd[i++]);
+            }
+            const rms = Math.sqrt(total / len) * 100;
+            // console.log(input, gcd[i] = -1 至 1 之间, rms * 100);
+            L.value = rms;
+            LV.innerText = gcd[i];
+          }
+          {
+            let gcd = evt.inputBuffer.getChannelData(1),
+              len = gcd.length,
+              total = (i = 0);
+
+            while (i < len) {
+              total += Math.abs(gcd[i++]);
+            }
+
+            R.value = Math.sqrt(total / len) * 100;
+          }
+        };
+
+        mediaSource.connect(scriptProcessor);
+        scriptProcessor.connect(ac.destination);
+      }
+
+      // 获取浏览器录音权限
+      navigator.getUserMedia =
+        navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia;
+      // if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      //   navigator.mediaDevices.getUserMedia({
+      //       audio: true,
+      //       video: false, // 注：如果没有摄像头请设为false
+      //     })
+      //     .then((stream) => {
+      //       getMediaSuccess(stream);
+      //     })
+      //     .catch((e) => {
+      //       console.error(e);
+      //       alert("对不起：录音权限获取失败!");
+      //     });
+      // } else
+      if (navigator.getUserMedia) {
+        navigator.getUserMedia(
+          {
+            audio: true,
+            video: false, // 注：如果没有摄像头请设为false
+          },
+          (stream) => {
+            // getMediaSuccess(stream);
+            getMediaSuccess2(stream);
+            // getMediaSuccess3(stream);
+          },
+          (err) => {
+            console.error(err);
+            alert("对不起：录音权限获取失败!");
+          }
+        );
+      } else {
+        if (
+          navigator.userAgent.toLowerCase().match(/chrome/) &&
+          location.origin.indexOf("https://") < 0
+        ) {
+          console.error(
+            "获取浏览器录音功能，因安全性问题，需要在localhost 或 https 下才能获取权限！"
+          );
+        } else {
+          alert("对不起：未识别到录音设备!");
+        }
+        ac && ac.close();
+      }
     </script>
   </body>
 </html>
