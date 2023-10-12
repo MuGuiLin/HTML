@@ -97,7 +97,11 @@
         }
         const recordingIns = Recording.getMediaRecorder(
           Recording.getRecording().steam,
-          { mimeType: "video/webm" }
+          { 
+            audioBitsPerSecond: 128000, // 128kbps 音频比特率（默认比特率根据采样率和轨道数自适应）
+            videoBitsPerSecond: 2500000, // 2.5Mbps 视频比特率（默认：2.5Mbps）
+            mimeType: "video/webm",
+          }
         );
         recordingIns.start(10);
         recordingIns.ondataavailable = function (e) {
