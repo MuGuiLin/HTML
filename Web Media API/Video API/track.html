@@ -7,15 +7,19 @@
     <link rel="stylesheet" href="./css/vjs.zencdn.net_8.5.2_video-js.css" />
     <!-- If you'd like to support IE8 (for Video.js versions prior to v7) -->
     <!-- <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script> -->
-    <title>video视频音轨</title>
+    <title>AudioTrack视频音轨</title>
     <style>
-      body{ padding: 100px; }
-      li{ line-height: 50px; }
+      body {
+        padding: 100px;
+      }
+      li {
+        line-height: 50px;
+      }
     </style>
   </head>
 
   <body>
-    <h1>video视频</h1>
+    <h1>AudioTrack() 视频音轨</h1>
     <hr />
     <div>
       <!-- muted静音自动播放
@@ -42,7 +46,9 @@
     <br /><br />
 
     <div>
-      <input type="text" id="text" /> <button type="button" id="add">添加音轨</button> <button type="button" id="play">play音轨</button>
+      <input type="text" id="text" />
+      <button type="button" id="add">添加音轨</button>
+      <button type="button" id="play">play音轨</button>
       <h2>音轨列表</h2>
       <hr />
       <ul id="trackList"></ul>
@@ -50,134 +56,158 @@
 
     <script src="./js/vjs.zencdn.net_8.5.2_video.min.js"></script>
     <script>
-        class VideoTrack {
-          constructor({video_el = '', track_el = ''}){
-             if('function' != (typeof videojs)) {
-              throw new TypeError('请添加video.js文件！');
-            }
-            if(!video_el) {
-              throw new TypeError('请传入video标签id！');
-            }
-            this.video_el = video_el;
-            this.track_el = document.querySelector(track_el);
+      class VideoTrack {
+        constructor({ video_el = "", track_el = "" }) {
+          if ("function" != typeof videojs) {
+            throw new TypeError("请添加video.js文件！");
+          }
+          if (!video_el) {
+            throw new TypeError("请传入video标签id！");
+          }
+          this.video_el = video_el;
+          this.track_el = document.querySelector(track_el);
 
-            // https://videojs.com/guides/audio-tracks
-            this.player = videojs(this.video_el);
+          // https://videojs.com/guides/audio-tracks
+          this.player = videojs(this.video_el);
 
-            this.render();
-          };
-
+          this.render();
+        }
 
         // 生成guid
         guid() {
-          const S4 = () => (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-          return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-        };
+          const S4 = () =>
+            (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+          return (
+            S4() +
+            S4() +
+            "-" +
+            S4() +
+            "-" +
+            S4() +
+            "-" +
+            S4() +
+            "-" +
+            S4() +
+            S4() +
+            S4()
+          );
+        }
 
-          add({id = this.guid() || Math.random().toString(36).substring(2), kind = 'translation', label = 'Spanish-' + Date.now(), language = 'en', enabled = Boolean(Math.random() > 0.5)} = {}){
-            try{
-              const track = new videojs.AudioTrack({ id, 
-                kind, 
-                // "alternative"：主轨道的可能替代方案。
-                // "descriptions"：视频轨道的音频描述。
-                // "main"：此视频的主要音轨。
-                // "main-desc"：主要音轨，混合音频描述。
-                // "translation"：主音轨的翻译版本。
-                // "commentary"：对主要音轨的评论，例如导演的评论。
-                // ""（默认值）：没有显式类型，或者轨道元数据给出的种类不是 由用户代理识别。
-                label, language, enabled
-              });
-              // 将曲目添加到播放器的音轨列表中
-              this.player.audioTracks().addTrack(track);
-             } catch(err){
-              console.error(err);
-            } finally{
-              this.render();
-            };
-          };
+        add({
+          id = this.guid() || Math.random().toString(36).substring(2),
+          kind = "translation",
+          label = "Spanish-" + Date.now(),
+          language = "en",
+          enabled = Boolean(Math.random() > 0.5),
+        } = {}) {
+          try {
+            const track = new videojs.AudioTrack({
+              id,
+              kind,
+              // "alternative"：主轨道的可能替代方案。
+              // "descriptions"：视频轨道的音频描述。
+              // "main"：此视频的主要音轨。
+              // "main-desc"：主要音轨，混合音频描述。
+              // "translation"：主音轨的翻译版本。
+              // "commentary"：对主要音轨的评论，例如导演的评论。
+              // ""（默认值）：没有显式类型，或者轨道元数据给出的种类不是 由用户代理识别。
+              label,
+              language,
+              enabled,
+            });
+            // 将曲目添加到播放器的音轨列表中
+            this.player.audioTracks().addTrack(track);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            this.render();
+          }
+        }
 
-          del(id = ''){
-            if(!id) {
-              alert('音轨id不能为空！');
+        del(id = "") {
+          if (!id) {
+            alert("音轨id不能为空！");
+          }
+          try {
+            if (confirm("是否确定删除？")) {
+              //获取我们在前面的示例中创建的轨迹。
+              const track = this.player.audioTracks().getTrackById(id);
+
+              // 将其从音轨列表中删除。
+              this.player.audioTracks().removeTrack(track);
             }
-            try{
-              if(confirm('是否确定删除？')) {                
-                //获取我们在前面的示例中创建的轨迹。
-                const track = this.player.audioTracks().getTrackById(id);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            this.render();
+          }
+        }
 
-                // 将其从音轨列表中删除。
-                this.player.audioTracks().removeTrack(track);
+        tracks() {
+          // 获取当前播放器的AudioTrackList对象。
+          const audioTracks = this.player.audioTracks();
+
+          // 监听音频改变时触发
+          audioTracks.addEventListener("change", function (e) {
+            console.log("监听音频改变时触发：", e);
+
+            // 记录当前启用的AudioTrack标签。
+            for (let i = 0; i < audioTracks.length; i++) {
+              const track = audioTracks[i];
+
+              if (track.enabled) {
+                videojs.log(track.label);
+                return;
               }
-            } catch(err){
-              console.error(err);
-            } finally{
-              this.render();
-            };
-          };
-
-          tracks() {
-            // 获取当前播放器的AudioTrackList对象。
-            const audioTracks = this.player.audioTracks();
-
-            // 监听音频改变时触发
-            audioTracks.addEventListener('change', function(e) {
-              console.log('监听音频改变时触发：', e);
-
-              // 记录当前启用的AudioTrack标签。
-              for (let i = 0; i < audioTracks.length; i++) {
-                const track = audioTracks[i];
-
-                if (track.enabled) {
-                  videojs.log(track.label);
-                  return;
-                }
-              }
-            });
-
-            // 监听添加轨道时触发
-            audioTracks.addEventListener('addtrack', function(e) {
-              console.log('监听添加轨道时触发：', e);
-            });
-
-            // 监听删除轨道时触发
-            audioTracks.addEventListener('removetrack', function(e) {
-              console.log('监听删除轨道时触发：', e);
-            });
-            
-            // 监听删除轨道时触发
-            audioTracks.addEventListener('cuechange', function(e) {
-              console.log('cuechange时触发：', e);
-            });
-
-            return audioTracks;
-          };
-
-          render() {
-            const tracks = this.tracks();
-            console.log(tracks);
-
-            let li = '';
-            if(tracks.length) {
-              for(let i = 0; i < tracks.length; i++) {
-                const { id, kind, label, language, enabled } = tracks[i];
-                li += `<li>${i + 1}、<b>ID：${id}；</b> kind：${kind}；label：${label}；language：${language}；enabled：${enabled}； <button type="button" onClick="vt.del('${id}')">⚔️删除音轨</button>`;
-              };
             }
-            this.track_el.innerHTML = li;
-          };
-        };
+          });
 
-        const vt = new VideoTrack({ 
-          video_el: 'my-video', 
-          track_el: '#trackList'
-        });
+          // 监听添加轨道时触发
+          audioTracks.addEventListener("addtrack", function (e) {
+            console.log("监听添加轨道时触发：", e);
+          });
 
-        console.log('player', vt.player);
-        
-        const text = document.querySelector('#text');
-        document.querySelector('#add').addEventListener('click', (event) => {
-          text.value ? vt.add({ id: text.value }) : vt.add();
-        });
+          // 监听删除轨道时触发
+          audioTracks.addEventListener("removetrack", function (e) {
+            console.log("监听删除轨道时触发：", e);
+          });
+
+          // 监听删除轨道时触发
+          audioTracks.addEventListener("cuechange", function (e) {
+            console.log("cuechange时触发：", e);
+          });
+
+          return audioTracks;
+        }
+
+        render() {
+          const tracks = this.tracks();
+          console.log(tracks);
+
+          let li = "";
+          if (tracks.length) {
+            for (let i = 0; i < tracks.length; i++) {
+              const { id, kind, label, language, enabled } = tracks[i];
+              li += `<li>${
+                i + 1
+              }、<b>ID：${id}；</b> kind：${kind}；label：${label}；language：${language}；enabled：${enabled}； <button type="button" onClick="vt.del('${id}')">⚔️删除音轨</button>`;
+            }
+          }
+          this.track_el.innerHTML = li;
+        }
+      }
+
+      const vt = new VideoTrack({
+        video_el: "my-video",
+        track_el: "#trackList",
+      });
+
+      console.log("player", vt.player);
+
+      const text = document.querySelector("#text");
+      document.querySelector("#add").addEventListener("click", (event) => {
+        text.value ? vt.add({ id: text.value }) : vt.add();
+      });
 
       /*
         e.renderVUMeter = function() {

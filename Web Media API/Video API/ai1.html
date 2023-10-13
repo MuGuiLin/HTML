@@ -15,9 +15,8 @@
   </head>
 
   <body>
-    
     <video id="video" width="800" height="600" controls>
-      <source src="./media/AAC-5.1.mp4" type="video/mp4" />
+      <source src="./media/202107.mp4" type="video/mp4" />
       <!-- <source src="./media/202107.mp4" type="video/mp4" />
       <source src="./media/八佰HD国语中字.mp4" type="video/mp4" /> -->
       Your browser does not support the video tag.
@@ -85,14 +84,13 @@
       video.addEventListener("loadedmetadata", function () {
         // 获取媒体播放器实例
         // var mediaPlayer = video.play();
-        
 
         // 监听播放器状态变化事件
         this.addEventListener("change", function () {
           // 获取音频轨道数据
           var audioTracks = this.audioTracks();
 
-          console.log(audioTracks, 6666666)
+          console.log(audioTracks, 6666666);
 
           // 输出音频轨道数量
           console.log("音频轨道数量：", audioTracks.length);

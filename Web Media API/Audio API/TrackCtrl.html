@@ -30,7 +30,7 @@
       <source src="./media/viper.ogg" type="audio/ogg" />
       <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
     </audio>
-   
+
     <input type="range" id="R" min="0" max="100" />
     <button type="button" id="RBTN">静音右声道（R）</button>
 
@@ -86,7 +86,6 @@
         // audioSource.connect(ac.destination);
         processor.connect(ac.destination);
 
-   
         // 通道分配器
         const splitterNode = new ChannelSplitterNode(ac, {
           numberOfOutputs: channelCount,
@@ -97,13 +96,11 @@
           numberOfInputs: channelCount,
         });
 
-
-        const volumeNodeL = new GainNode(ac);
+        const volumeNodeL = new GainNode(ac, { gain: 0.2 });
         const volumeNodeR = new GainNode(ac);
         const volumeNodeSL = new GainNode(ac);
         const volumeNodeSR = new GainNode(ac);
 
-        volumeNodeL.gain.value = 2;
         volumeNodeR.gain.value = 2;
         volumeNodeSL.gain.value = 2;
         volumeNodeSR.gain.value = 2;

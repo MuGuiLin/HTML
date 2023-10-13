@@ -30,7 +30,8 @@
     <canvas id="canvas" width="400" height="200"></canvas>
 
     <script>
-      var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      var audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       var video = document.getElementById("myVideo");
       var sourceNode = audioContext.createMediaElementSource(video);
       var analyserNode = audioContext.createAnalyser();
@@ -51,11 +52,12 @@
       var bufferLength = analyserNode.frequencyBinCount;
       var dataArrayTime = new Uint8Array(bufferLength);
       var dataArrayFreq = new Uint8Array(bufferLength);
-      analyserNode.getByteFrequencyData(dataArrayFreq);
-      analyserNode.getByteTimeDomainData(dataArrayTime);
 
       // 绘制音频响度的可视化图形
       function draw() {
+        analyserNode.getByteTimeDomainData(dataArrayTime);
+        analyserNode.getByteFrequencyData(dataArrayFreq);
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -63,20 +65,33 @@
         ctx.fillText("Left Channel Level: " + leftChannelLevel, 10, 20);
         ctx.fillText("Right Channel Level: " + rightChannelLevel, 10, 40);
         ctx.fillStyle = "rgb(0, 255, 0)";
-        ctx.fillRect(
-          (canvas.width * leftChannelLevel) / bufferLength,
-          0,
-          canvas.width * (rightChannelLevel / bufferLength),
-          20
-        );
+
+        for (let i = 0; i < analyserNode.fftSize; i++) {
+          leftChannelLevel = dataArrayTime[i];
+          rightChannelLevel = dataArrayFreq[i];
+
+          ctx.fillRect(
+            (canvas.width * leftChannelLevel) / bufferLength,
+            0,
+            canvas.width * (rightChannelLevel / bufferLength),
+            100
+          );
+        }
         ctx.fillStyle = "rgb(255, 0, 0)";
-        ctx.fillRect(
-          (canvas.width * rightChannelLevel) / bufferLength,
-          0,
-          canvas.width * (leftChannelLevel / bufferLength),
-          20
+        for (let i = 0; i < analyserNode.fftSize; i++) {
+          leftChannelLevel = dataArrayTime[i];
+          rightChannelLevel = dataArrayFreq[i];
+          ctx.fillRect(
+            (canvas.width * rightChannelLevel) / bufferLength,
+            50,
+            canvas.width * (leftChannelLevel / bufferLength),
+            100
+          );
+        }
+        console.log(
+          bufferLength,
+          (canvas.width * leftChannelLevel) / bufferLength
         );
-        console.log(bufferLength)
         rafid = requestAnimationFrame(draw);
       }
 
