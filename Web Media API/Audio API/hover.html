@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>鼠标hover按钮无中生有播放声音</title>
     <style>
+      body {
+        padding: 100px;
+      }
+
       button,
       select {
         padding: 20px 50px;
@@ -22,14 +26,13 @@
 
   <body>
     <h1>鼠标hover按钮无中生有播放声音</h1>
-    <p>鼠标hover按钮无中生有播放声音。</p>
     <hr />
 
     <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/AudioContext"
       >Web Audio API - AudioContext</a
     >
     <br />
-
+    
     <label>
       波形声调基本类型：<select>
         <option value="sine">sine - 正弦波</option>
@@ -40,6 +43,8 @@
       </select>
       <img src="./img/波形类型.png" alt="" />
     </label>
+
+    <br />
     <br />
 
     <button>1</button>

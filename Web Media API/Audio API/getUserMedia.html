@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web getUserMedia API 获取麦克风 音频流</title>
+    <style>
+      body {
+        padding: 100px;
+      }
+      input[type="range"] {
+        transform: rotate(-90deg);
+      }
+      div {
+        margin: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Web getUserMedia API 获取麦克风 音频流</h1>
+    <hr />
+
+    <div>
+      <input type="range" id="L" max="100" />
+      <b id="LV">0</b>
+      <!-- <input type="range" id="L2" min="-1" max="1" />
+      <b id="LV2">0</b> -->
+    </div>
+
+    <label>
+      滤波器类型（变声）：<select id="select">
+        <option value="lowpass">lowpass - 低通滤波</option>
+        <option value="highpass">highpass - 高通滤波</option>
+        <option value="bandpass">bandpass - 带通滤波</option>
+        <option value="lowshelf">lowshelf - 滤波</option>
+        <option value="highshelf">highshelf - 滤波</option>
+        <option value="peaking">peaking - 滤波</option>
+        <option value="notch">notch - 标准陷波滤波</option>
+        <option value="allpass">allpass - 标准二阶全通滤波</option>
+      </select>
+    </label>
+
+    <div>
+      <input type="range" id="R" max="100" />
+      <b id="RV">0</b>
+      <!-- <input type="range" id="R2" min="-1" max="1" />
+      <b id="RV2">0</b> -->
+    </div>
+
+    <a href="https://mdn.github.io/voice-change-o-matic/"
+      >https://mdn.github.io/voice-change-o-matic/</a
+    >
+
+    <script>
+      {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        function isTypeSupported() {
+          const types = [
+            "audio/webm",
+            "audio/webm;codecs=opus",
+            "video/webm",
+            "video/mpeg",
+            "video/webm;codecs=vp8",
+            "video/webm;codecs=daala",
+            "video/webm;codecs=h264",
+          ];
+          for (var i in types) {
+            console.log(
+              `是否支持${types[i]} 编解码器？${
+                MediaRecorder.isTypeSupported(types[i]) ? true : false
+              }`
+            );
+          }
+        }
+
+        function getMediaSuccess(stream) {
+          
+          const audioTracks = stream.getAudioTracks();
+          for (let i = 0; i < audioTracks.length; i++) {
+            const track = audioTracks[i];
+            track.enabled = true;
+            stream.addTrack(track);
+          }
+          console.log("声道数", audioTracks.length);
+
+          const osc = ac.createOscillator();
+          const mediaDestination = ac.createMediaStreamDestination(stream);
+          const mediaRecorder = new MediaRecorder(stream);
+          osc.connect(mediaDestination);
+
+          console.log(stream)
+          console.log(mediaDestination)
+
+          mediaRecorder.ondataavailable = (evt) => {
+            // Push each chunk (blobs) in an array
+            console.log(evt.data);
+          };
+          mediaRecorder.start();
+          osc.start(0);
+
+          /*
+          // const audioData = [[], []];
+          const scriptNode = ac.createScriptProcessor(2048, 2, 2);
+
+          scriptNode.onaudioprocess = function (e) {
+            let left = e.inputBuffer.getChannelData(0);
+            let right = e.inputBuffer.getChannelData(1);
+
+            // 对左右声道进行处理，如：计算音量大小
+            let total1 = 0, total2 = 0;
+            for (let i = 0; i < left.length; i++) {
+              // audioData[0][i] = left[i];
+              // audioData[1][i] = right[i];
+              total1 += Math.abs(left[i]);
+              total2 += Math.abs(right[i]);
+            }
+
+            L.value = Math.sqrt(total1 / left.length) * 100;
+            R.value = Math.sqrt(total2 / right.length) * 100;
+
+            // console.log(audioData);
+          };
+
+          scriptNode.connect(ac.destination)
+          ac.resume();
+
+          */
+        }
+
+        function getMediaSuccess2(stream) {
+          // 创建一个新的MediaStreamAudioSourceNode 对象，使来自MediaStream的音频可以被播放和操作
+          const mediaSource = ac.createMediaStreamSource(stream);
+
+          // 创建一个用于通过JavaScript直接处理音频
+          const scriptProcessor = ac.createScriptProcessor(2048, 6, 6);
+
+          // // filter为一个中间处理器，用来过滤音频
+          // const filter = ac.createBiquadFilter("lowpass");
+          // // mediaSource -> filter -> destination.
+          // mediaSource.connect(filter);
+          // filter.connect(ac.destination);
+          // select.addEventListener("change", function () {
+          //   console.log("createBiquadFilter 过滤器：", filter);
+          //   filter.type = this.value;
+          // });
+
+          scriptProcessor.onaudioprocess = (evt) => {
+            // outputBuffer
+            const l = evt.inputBuffer.getChannelData(0);
+            const r = evt.inputBuffer.getChannelData(1);
+
+            {
+              let len = l.length,
+                total = (i = 0);
+              while (i < len) {
+                total += Math.abs(l[i++]);
+              }
+              L.value = Math.sqrt(total / len) * 1000;
+              LV.innerText = Math.sqrt(total / len) * 1000;
+            }
+
+            {
+              let len = r.length,
+                total = (i = 0);
+              while (i < len) {
+                total += Math.abs(r[i++]);
+              }
+              R.value = Math.sqrt(total / len) * 1000;
+              RV.innerText = Math.sqrt(total / len) * 1000;
+            }
+
+            /*
+            {
+              // 对左右声道进行处理，如：计算音量大小
+              let maxLeft = -Infinity, minLeft = Infinity;
+              for (let i = 0; i < l.length; i++) {
+                L2.value = l[i];
+                LV2.innerText = l[i];
+                maxLeft = Math.max(maxLeft, l[i]);
+                minLeft = Math.min(minLeft, l[i]);
+
+                // maxRight = Math.max(maxRight, r[i]);
+                // minRight = Math.min(minRight, r[i]);
+              };
+              // console.log("左声道最大音量：", maxLeft, "最小音量：", minLeft);
+  
+              let maxRight = -Infinity, minRight = Infinity;
+              for (let i = 0; i < r.length; i++) {
+                R2.value = r[i] * 10;
+                RV2.innerText = r[i];
+                maxRight = Math.max(maxRight, r[i]);
+                minRight = Math.min(minRight, r[i]);
+              };
+              // console.log("右声道最大音量：", maxRight, "最小音量：", minRight);
+            }
+          */
+          };
+          mediaSource.connect(scriptProcessor);
+          scriptProcessor.connect(ac.destination);
+        }
+
+        // 获取浏览器录音权限
+        navigator.getUserMedia =
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia ||
+          navigator.msGetUserMedia;
+        // if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        //   navigator.mediaDevices.getUserMedia({
+        //       audio: true,
+        //       video: false, // 注：如果没有摄像头请设为false
+        //     })
+        //     .then((stream) => {
+        //       getMediaSuccess(stream);
+        //     })
+        //     .catch((e) => {
+        //       console.error(e);
+        //       alert("对不起：录音权限获取失败!");
+        //     });
+        // } else
+        if (navigator.getUserMedia) {
+          navigator.getUserMedia(
+            {
+              audio: true,
+              video: false, // 注：如果没有摄像头请设为false
+            },
+            (stream) => {
+              getMediaSuccess(stream);
+              // getMediaSuccess2(stream);
+            },
+            (err) => {
+              console.error(err);
+              alert("对不起：录音权限获取失败!");
+            }
+          );
+        } else {
+          if (
+            navigator.userAgent.toLowerCase().match(/chrome/) &&
+            location.origin.indexOf("https://") < 0
+          ) {
+            console.error(
+              "获取浏览器录音功能，因安全性问题，需要在localhost 或 https 下才能获取权限！"
+            );
+          } else {
+            alert("对不起：未识别到录音设备!");
+          }
+          ac && ac.close();
+        }
+      }
+
+      {
+        class SoundMeter {
+          // instant: number;
+          // script: any;
+          // clip: number;
+          // slow: number;
+          // context: any;
+          // mic: any;
+          constructor(context) {
+            this.context = context;
+            this.instant = 0.0;
+            this.slow = 0.0;
+            this.clip = 0.0;
+            this.script = context.createScriptProcessor(2048, 1, 1);
+            const that = this;
+            // this.script.onaudioprocess = function (event: { inputBuffer: { getChannelData: (arg0: number) => any }, }) {
+            this.script.onaudioprocess = function (event) {
+              const input = event.inputBuffer.getChannelData(0);
+              let i;
+              let sum = 0.0;
+              let clipcount = 0;
+              for (i = 0; i < input.length; ++i) {
+                sum += input[i] * input[i];
+                if (Math.abs(input[i]) > 0.99) {
+                  clipcount += 1;
+                }
+              }
+              that.instant = Math.sqrt(sum / input.length);
+              that.slow = 0.95 * that.slow + 0.05 * that.instant;
+              that.clip = clipcount / input.length;
+            };
+          }
+          connectToSource = (stream, callback) => {
+            console.log("SoundMeter connecting");
+            try {
+              this.mic = this.context.createMediaStreamSource(stream);
+              this.mic.connect(this.script);
+              this.script.connect(this.context.destination);
+              if (typeof callback !== "undefined") {
+                callback(null);
+              }
+            } catch (e) {
+              console.error(e);
+              if (typeof callback !== "undefined") {
+                callback(e);
+              }
+            }
+          };
+          stop = () => {
+            this.mic.disconnect();
+            this.script.disconnect();
+          };
+        }
+      }
+    </script>
+  </body>
+</html>

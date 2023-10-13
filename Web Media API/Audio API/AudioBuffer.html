@@ -12,14 +12,18 @@
     </style>
   </head>
   <body>
-    <button>Make white noise 发出白噪音</button>
+    <h1>Web AudioBuffer() API</h1>
+    <hr />
+
+    <button>Make white noise 点击发出白噪音</button>
+
     <script>
       {
         const button = document.querySelector("button");
 
         let ac;
 
-        // 立体声2, 2.1
+        // 立体声 2.1 L, E, R
         let channels = 2.0;
 
         function init() {
@@ -41,7 +45,7 @@
           });
 
           //用白噪声填充缓冲区；
-          //只是-1.0和1.0之间的随机值
+          //只是-1.0和1.0之间的随机值(Math.random() * 2 - 1)
           for (let channel = 0; channel < channels; channel++) {
             // This gives us the actual array that contains the data
             const nowBuffering = buffer.getChannelData(channel);
@@ -80,7 +84,7 @@
         video.addEventListener("loadedmetadata", function () {
           // 当视频元数据加载完成后，连接AnalyserNode
           analyser.connect(ac.destination);
-         
+
           // 获取音频数据的频率和通道数
           const bufferLength = analyser.frequencyBinCount;
           const buffer = new Uint8Array(bufferLength);

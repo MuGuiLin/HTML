@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Audio API examples: createAnalyser() and getByteTimeDomainData()</title>
+    <style>
+      body {
+        padding: 100px;
+      }
+      input[type="range"] {
+        transform: rotate(-90deg);
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Web Audio API examples: createAnalyser() and getByteTimeDomainData()</h1>
+    <hr />
+    <br />
+    <br />
+
+    <button type="button" id="LBTN">静音左声道</button>
+    <input type="range" id="L" min="0" max="100" />
+
+    <audio mute controls loop>
+      <source src="./media/hlbb.mp3" type="audio/mp3" />
+      <source src="./media/viper.ogg" type="audio/ogg" />
+      <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
+    </audio>
+
+    <button type="button" id="play">new Audio() 音频播放 / 暂停</button>
+
+    <video mute controls loop width="500">
+      <source src="./media//202107.mp4" type="video/mp4" />
+      <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
+    </video>
+
+    <input type="range" id="R" min="0" max="100" />
+    <button type="button" id="RBTN">静音右声道</button>
+
+    <br />
+    <br />
+
+    <canvas width="1280" height="300"></canvas>
+    <script>
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+      // const audio = new Audio("./media/hlbb.mp3");
+      // const audio = document.querySelector("audio");
+      const audio = document.querySelector("video");
+
+      const canvas = document.querySelector("canvas");
+
+      const ctx = canvas.getContext("2d");
+
+      const source = ac.createMediaElementSource(audio);
+      source.connect(ac.destination);
+      const analyser = ac.createAnalyser();
+      source.connect(analyser);
+
+      analyser.fftSize = 256;
+      const dataArray = new Uint8Array(analyser.fftSize);
+
+      // 音柱数量
+      const size = 68;
+      const rectArray = [];
+      let timer = null;
+
+      for (let i = 0; i < size; i++) {
+        rectArray.push({ cap: 0 });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        analyser.getByteTimeDomainData(dataArray);
+        let width = canvas.width / size;
+        for (let i = 0; i < size; i++) {
+          const height = dataArray[i];
+          const y = canvas.height - height;
+          const x = i * width + canvas.width / 2;
+          const x2 = canvas.width / 2 - (i + 1) * width;
+          const linear = ctx.createLinearGradient(0, 160, 0, canvas.height);
+
+          linear.addColorStop(0, "red");
+          linear.addColorStop(0.5, "yellow");
+          linear.addColorStop(1, "green");
+
+          ctx.fillStyle = linear;
+          ctx.fillRect(x, y, width - 5, height);
+          ctx.fillRect(x2, y, width - 5, height);
+
+          const o = rectArray[i];
+          ctx.fillStyle = "blue";
+          ctx.fillRect(x, canvas.height - (o.cap + 12), width - 5, 8);
+          ctx.fillRect(x2, canvas.height - (o.cap + 12), width - 5, 8);
+
+          o.cap -= 3;
+          if (o.cap < 0) {
+            o.cap = 0;
+          }
+          if (height > 0 && o.cap < height) {
+            o.cap = height;
+          }
+        }
+        timer = requestAnimationFrame(animate);
+        console.log(123);
+      }
+
+      document.querySelector('#play').onclick = () => {
+        audio.paused ? audio.play() : audio.pause();
+      };
+
+      audio.addEventListener("play", () => {
+        animate();
+      });
+
+      // audio.addEventListener("playing", function () {
+      //   animate();
+      // });
+
+      audio.addEventListener("ended", function () {
+        cancelAnimationFrame(timer);
+      });
+
+      audio.addEventListener("pause", function () {
+        cancelAnimationFrame(timer);
+      });
+    </script>
+  </body>
+</html>
