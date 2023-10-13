@@ -15,6 +15,10 @@
         font-size: 18px;
       }
 
+       progress {
+        width: 600px;
+      }
+
       table, th, td{
         border: 1px solid gray;
       }
@@ -33,7 +37,7 @@
     <hr />
     <br />
 
-    <audio controls src="./media/hlbb.mp3"></audio>
+    <audio controls loop src="./media/hlbb.mp3"></audio>
 
     <br />
     <label
@@ -46,20 +50,33 @@
     <br />
     <h3>多通道音量控制</h3>
 
-    <!--- <audio id="audio" controls src="./media/hlbb.mp3"></audio> -->
-    <video id="audio" controls src="./media/202107.mp4"></video>
+    <!--- <audio id="audio" loop controls src="./media/hlbb.mp3"></audio> -->
+    <video id="audio" loop controls src="./media/202107.mp4"></video>
 
     <br />
     <label>音量控制器（L）：
       <input type="range" id="Lgain" value="1" min="0" max="5" />
       <button class="Lmute">静音（mute）</button>
+      声道响度（L）：<progress id="Lvu" max="100" value="0"></progress>
     </label>
     <br />
     <label>音量控制器（R）：
       <input type="range" id="Rgain" value="1" min="0" max="5" />
       <button class="Rmute">静音（mute）</button>
+      声道响度（R）：<progress id="Rvu" max="100" value="0"></progress>
     </label>
-
+    <br />
+    <label>音量控制器（SL）：
+      <input type="range" id="SLgain" value="1" min="0" max="5" />
+      <button class="SLmute">静音（mute）</button>
+      声道响度（SL）：<progress id="SLvu" max="100" value="0"></progress>
+    </label>
+    <br />
+    <label>音量控制器（SR）：
+      <input type="range" id="SRgain" value="1" min="0" max="5" />
+      <button class="SRmute">静音（mute）</button>
+      声道响度（SR）：<progress id="SRvu" max="100" value="0"></progress>
+    </label>
 
     <script>
       let ac = null;
@@ -117,6 +134,7 @@
       {
         const audio = document.querySelector("#audio");
         const source = ac.createMediaElementSource(audio);
+        source.channelCount = 4;
 
         // https://developer.mozilla.org/en-US/docs/Web/API/GainNode/GainNode
         const gainNode1 = new GainNode(ac, {
@@ -140,6 +158,9 @@
         gainNode2.connect(mergerNode, 0, 1); // connect INPUT channel 1
 
         mergerNode.connect(ac.destination);
+
+
+        console.log(gainNode1)
 
         Lgain.oninput = function () {
           gainNode1.gain.value = this.value;
@@ -174,7 +195,57 @@
             Rmute.textContent = "静音（mute）";
           }
         };
+
+
+        // 多通道音频流
+      {
+        const analyserL = ac.createAnalyser();
+        const analyserR = ac.createAnalyser();
+
+        source.connect(analyserL);
+        source.connect(analyserR);
+        // source.connect(ac.destination);
+
+        const L = new StereoPannerNode(ac, {pan: -1});
+        const R = new StereoPannerNode(ac, {pan: 1});
+
+        analyserL.fftSize = 32;
+        const bufferLengthL = analyserL.frequencyBinCount;
+        const frequencyDataL = new Float32Array(bufferLengthL);
+
+        analyserR.fftSize = 32;
+        const bufferLengthR = analyserR.frequencyBinCount;
+        const frequencyDataR = new Float32Array(bufferLengthR);
+
+        let i = 0, job, origin = new Date().getTime();
+        const timer = () => {
+          if (new Date().getTime() - i > origin){
+            analyserL.getFloatFrequencyData(frequencyDataL);
+            analyserR.getFloatFrequencyData(frequencyDataR);
+
+            let lv = Object.values(frequencyDataL).reduce((a,b) => a + b, 0)*-0.05
+            let rv = Object.values(frequencyDataR).reduce((a,b) => a + b, 0)*-0.05
+
+            if(gainNode1.gain.value){
+               Lvu.value = ~~lv
+            }
+           
+            if(gainNode2.gain.value){
+              Rvu.value = ~~rv
+            }
+           
+            i = i + 41 // 24 FPS
+            job = requestAnimationFrame(timer);
+          } else if (job !== null){
+              requestAnimationFrame(timer)
+          }
+        }
+
+        requestAnimationFrame(timer)
       }
+    }
+
+      
     </script>
 
 
@@ -183,25 +254,25 @@
         <thead>
           <tr>
             <th _msttexthash="4389879" _msthash="164">名字</th>
-            <th _msttexthash="6407960" _msthash="165">渠道</th>
+            <th _msttexthash="6407960" _msthash="165">通道</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><em _msttexthash="1941303" _msthash="166">单声道</em></td>
-            <td><code>0: M: mono</code></td>
+            <td><code>0: M: mono（单声道）</code></td>
           </tr>
           <tr>
             <td><em _msttexthash="7636369" _msthash="167">立体声</em></td>
-            <td><code>0: L: left 1: R: right</code></td>
+            <td><code>0: L: left（左声道）  |  1: R: right（右声道）</code></td>
           </tr>
           <tr>
             <td><em _msttexthash="2023385" _msthash="168">四声道</em></td>
-            <td><code>0: L: left 1: R: right 2: SL: surround left 3: SR: surround right</code></td>
+            <td><code>0: L: left（左声道）  |  1: R: right（右声道）  |  2: SL: surround left（左环绕）  |  3: SR: surround right（右环绕）</code></td>
           </tr>
           <tr>
             <td><em _msttexthash="15340" _msthash="169">5.1声道</em></td>
-            <td><code>0: L: left 1: R: right 2: C: center 3: LFE: subwoofer 4: SL: surround left 5: SR: surround right</code></td>
+            <td><code>0: L: left（左声道）  |  1: R: right（右声道）  |  2: C: center（中置）  |  3: LFE: subwoofer（低音炮）  |  4: SL: surround left（左环绕）  |  5: SR: surround right（右环绕）</code></td>
           </tr>
         </tbody>
       </table></figure></div></section>
