@@ -33,9 +33,9 @@
         <option value="lowpass">lowpass - 低通滤波</option>
         <option value="highpass">highpass - 高通滤波</option>
         <option value="bandpass">bandpass - 带通滤波</option>
-        <option value="lowshelf">lowshelf - 滤波</option>
-        <option value="highshelf">highshelf - 滤波</option>
-        <option value="peaking">peaking - 滤波</option>
+        <option value="lowshelf">lowshelf - 低架滤波</option>
+        <option value="highshelf">highshelf - 高架滤波</option>
+        <option value="peaking">peaking - 峰值滤波</option>
         <option value="notch">notch - 标准陷波滤波</option>
         <option value="allpass">allpass - 标准二阶全通滤波</option>
       </select>
@@ -53,6 +53,9 @@
 
         // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷） // http://web.h3399.cn/BiquadFilterNode.htm
         const filterNode = ac.createBiquadFilter("lowpass");
+        filterNode.Q.value = 1; // 峰值滤波器的带宽
+        filterNode.frequency.value = 1000; // 中心频率
+        filterNode.gain.value = 5; // 增益，单位db
 
         source.connect(filterNode);
 

@@ -86,7 +86,7 @@
 
         oscillator.connect(gainNode);
 
-        console.log("音频通道数据：", oscillator.channelCount);
+        console.log("音频通道数：", oscillator.channelCount);
 
         const mute = document.querySelector(".mute");
         mute.onclick = () => {
@@ -125,18 +125,21 @@
           channelCountMode: 'explicit', // 描述通道之间必须匹配的方式 节点的输入和输出 https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelCountMode
           channelInterpretation: 'speakers',  // 'discrete'// 音频节点通道解释属性 https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelInterpretation
         });
-        source.connect(gainNode1);
-        gainNode1.connect(ac.destination);
 
-        const gainNode2 = new GainNode(ac, {
-          gain: 1,   // 默认：1， 范围（-∞，+∞）
-          channelCount: 1, // 连接到节点的任何输入时使用的通道数
-          channelCountMode: 'explicit', // 描述通道之间必须匹配的方式 节点的输入和输出 https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelCountMode
-          channelInterpretation: 'speakers',  // 'discrete'// 音频节点通道解释属性 https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelInterpretation
-        });
-        source.connect(gainNode2);
-        gainNode2.connect(ac.destination);
+        const gainNode2 = new GainNode(ac);
 
+        const splitterNode = new ChannelSplitterNode(ac, { numberOfOutputs: source.channelCount });
+        const mergerNode = new ChannelMergerNode(ac, { numberOfInputs: source.channelCount });
+
+        source.connect(splitterNode);
+
+        splitterNode.connect(gainNode1, 0); // connect OUTPUT channel 0
+        splitterNode.connect(gainNode2, 1); // connect OUTPUT channel 1
+
+        gainNode1.connect(mergerNode, 0, 0); // connect INPUT channel 0
+        gainNode2.connect(mergerNode, 0, 1); // connect INPUT channel 1
+
+        mergerNode.connect(ac.destination);
 
         Lgain.oninput = function () {
           gainNode1.gain.value = this.value;

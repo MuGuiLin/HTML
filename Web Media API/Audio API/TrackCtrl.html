@@ -55,6 +55,7 @@
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
         // const audio = new Audio('./media/hlbb.mp3');
+                //  audio.crossOrigin = "anonymous";  // 跨原点-如果文件存储在远程服务器上
 
         // const audio = document.querySelector("audio");
         const audio = document.querySelector("video");
@@ -96,14 +97,10 @@
           numberOfInputs: channelCount,
         });
 
-        const volumeNodeL = new GainNode(ac, { gain: 0.2 });
-        const volumeNodeR = new GainNode(ac);
-        const volumeNodeSL = new GainNode(ac);
-        const volumeNodeSR = new GainNode(ac);
-
-        volumeNodeR.gain.value = 2;
-        volumeNodeSL.gain.value = 2;
-        volumeNodeSR.gain.value = 2;
+        const volumeNodeL = new GainNode(ac, { gain: 2 });
+        const volumeNodeR = new GainNode(ac, { gain: 2 });
+        const volumeNodeSL = new GainNode(ac, { gain: 2 });
+        const volumeNodeSR = new GainNode(ac, { gain: 2 });
 
         audioSource.connect(splitterNode);
 
@@ -197,6 +194,7 @@
 
             isPlaying = !isPlaying;
             if (isPlaying) {
+              // gainNode.gain.exponentialRampToValueAtTime(1, 1); // 在1秒的时间内指数增长到1，实现一个播放渐入效果
               audio.play();
             } else {
               audio.pause();
