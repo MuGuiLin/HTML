@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio 本地音频文件点播</title>
+    <style>
+      body {
+        padding: 100px;
+      }
+      button{
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Audio 本地音频文件点播</h1>
+    <hr />
+
+    <div>
+      <input type="file" id="loadfile" placeholder="请选择音频文件" />
+      <button id="play">播放</button>
+      <button id="pause">停止</button>
+    </div>
+
+    <ul></ul> 
+
+    <script>
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+      var bufferData = null;
+      var AudioBufferSourceNode = null;
+
+      document.getElementById("loadfile").addEventListener("change", function () {
+          const file = this.files[0];
+          const fr = new FileReader();
+          fr.addEventListener("load", function (e) {
+            ac.decodeAudioData( e.target.result, function (buffer) {
+                // playFun(buffer);  // 解码后返回的AudioBuffer对象作为播放函数的参数传入
+                console.log("音乐载入完毕");
+                bufferData = buffer;
+
+                /* 写到 decodeAudioData 事件内部，当音乐加载完毕后才能执行播放和停止 */
+                // 播放
+                play.onclick = function () {
+                  console.log("播放");
+                  AudioBufferSourceNode = ac.createBufferSource(); // 必须在播放时重新创建 AudioBufferSourceNode 对象，否则会出现不能再次播放的问题
+                  AudioBufferSourceNode.buffer = bufferData; // AudioBuffer数据赋值给buffer属性
+                  AudioBufferSourceNode.connect(ac.destination); // 如果只是播放音频，这边就直接将AudioBufferSourceNode连接到AudioDestinationNode
+
+                  AudioBufferSourceNode.start(0); // 开始播放音频
+                  console.log("音乐状态:", ac.state);
+                };
+
+                // 停止
+                pause.onclick = function () {
+                  console.log("停止");
+                  AudioBufferSourceNode.stop(0); // 停止播放音乐
+                  console.log("音乐状态:", ac.state);
+                };
+              },
+              function (err) {
+                console.log(err);
+              }
+            );
+          });
+          fr.readAsArrayBuffer(file);
+          
+        });
+    </script>
+  </body>
+</html>

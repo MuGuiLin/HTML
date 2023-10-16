@@ -22,6 +22,7 @@
     <hr />
 
     <div>
+      <b>左声道（L）</b>
       <input type="range" id="L" max="100" />
       <b id="LV">0</b>
       <!-- <input type="range" id="L2" min="-1" max="1" />
@@ -42,11 +43,14 @@
     </label>
 
     <div>
+      <b>右声道（R）</b>
       <input type="range" id="R" max="100" />
       <b id="RV">0</b>
       <!-- <input type="range" id="R2" min="-1" max="1" />
       <b id="RV2">0</b> -->
     </div>
+
+    <canvas width="1280" height="300"></canvas>
 
     <a href="https://mdn.github.io/voice-change-o-matic/"
       >https://mdn.github.io/voice-change-o-matic/</a
@@ -55,6 +59,14 @@
     <script>
       {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        ac.addEventListener("sinkchange", () => {
+          if (typeof ac.sinkId === "object" && ac.sinkId.type === "none") {
+            console.log("音频已更改为不在任何设备上播放！");
+          } else {
+            console.log(`Audio output device changed to ${ac.sinkId}`);
+          }
+        });
 
         function isTypeSupported() {
           const types = [
@@ -76,7 +88,6 @@
         }
 
         function getMediaSuccess(stream) {
-          
           const audioTracks = stream.getAudioTracks();
           for (let i = 0; i < audioTracks.length; i++) {
             const track = audioTracks[i];
@@ -90,8 +101,8 @@
           const mediaRecorder = new MediaRecorder(stream);
           osc.connect(mediaDestination);
 
-          console.log(stream)
-          console.log(mediaDestination)
+          console.log(stream);
+          console.log(mediaDestination);
 
           mediaRecorder.ondataavailable = (evt) => {
             // Push each chunk (blobs) in an array
@@ -132,6 +143,7 @@
         function getMediaSuccess2(stream) {
           // 创建一个新的MediaStreamAudioSourceNode 对象，使来自MediaStream的音频可以被播放和操作
           const mediaSource = ac.createMediaStreamSource(stream);
+          console.log(mediaSource)
 
           // 创建一个用于通过JavaScript直接处理音频
           const scriptProcessor = ac.createScriptProcessor(2048, 6, 6);
@@ -157,8 +169,8 @@
               while (i < len) {
                 total += Math.abs(l[i++]);
               }
-              L.value = Math.sqrt(total / len) * 1000;
-              LV.innerText = Math.sqrt(total / len) * 1000;
+              L.value = Math.sqrt(total / len) * 100;
+              LV.innerText = Math.sqrt(total / len) * 100;
             }
 
             {
@@ -167,8 +179,8 @@
               while (i < len) {
                 total += Math.abs(r[i++]);
               }
-              R.value = Math.sqrt(total / len) * 1000;
-              RV.innerText = Math.sqrt(total / len) * 1000;
+              R.value = Math.sqrt(total / len) * 100;
+              RV.innerText = Math.sqrt(total / len) * 100;
             }
 
             /*
@@ -197,9 +209,68 @@
             }
           */
           };
+
           mediaSource.connect(scriptProcessor);
           scriptProcessor.connect(ac.destination);
+
+          const analyser = ac.createAnalyser();
+          mediaSource.connect(analyser);
+
+          analyser.fftSize = 256;
+          const dataArray = new Uint8Array(analyser.fftSize);
+
+          // 音柱数量
+          const size = 68;
+          const rectArray = [];
+          let timer = null;
+          const canvas = document.querySelector("canvas");
+          const ctx = canvas.getContext("2d");
+
+          for (let i = 0; i < size; i++) {
+            rectArray.push({ cap: 0 });
+          }
+
+          function animate() {
+            console.log(6)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            analyser.getByteTimeDomainData(dataArray);
+            let width = canvas.width / size;
+            for (let i = 0; i < size; i++) {
+              const height = dataArray[i];
+              const y = canvas.height - height;
+              const x = i * width + canvas.width / 2;
+              const x2 = canvas.width / 2 - (i + 1) * width;
+              const linear = ctx.createLinearGradient(0, 160, 0, canvas.height);
+
+              linear.addColorStop(0, "red");
+              linear.addColorStop(0.5, "yellow");
+              linear.addColorStop(1, "green");
+
+              ctx.fillStyle = linear;
+              ctx.fillRect(x, y, width - 5, height);
+              ctx.fillRect(x2, y, width - 5, height);
+
+              const o = rectArray[i];
+              ctx.fillStyle = "blue";
+              ctx.fillRect(x, canvas.height - (o.cap + 12), width - 5, 8);
+              ctx.fillRect(x2, canvas.height - (o.cap + 12), width - 5, 8);
+
+              o.cap -= 3;
+              if (o.cap < 0) {
+                o.cap = 0;
+              }
+              if (height > 0 && o.cap < height) {
+                o.cap = height;
+              }
+            }
+            timer = requestAnimationFrame(animate);
+          }
+          animate();
         }
+
+        navigator.mediaDevices.enumerateDevices().then((res) => {
+          console.log("可输出音频设备：", res);
+        });
 
         // 获取浏览器录音权限
         navigator.getUserMedia =
@@ -227,8 +298,8 @@
               video: false, // 注：如果没有摄像头请设为false
             },
             (stream) => {
-              getMediaSuccess(stream);
-              // getMediaSuccess2(stream);
+              // getMediaSuccess(stream);
+              getMediaSuccess2(stream);
             },
             (err) => {
               console.error(err);

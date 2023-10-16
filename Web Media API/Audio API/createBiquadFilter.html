@@ -9,8 +9,10 @@
       body {
         padding: 100px;
       }
-      input[type="button"]{
+      input[type="button"], select {
         margin: 10px;
+        padding: 5px;
+        font-size: 16px;
       }
     </style>
   </head>
@@ -18,7 +20,7 @@
     <h1>Web createBiquadFilter API 音频滤波器</h1>
     <hr />
 
-    <audio src="./media/hlbb.mp3" id="origin" controls ></audio>
+    <audio src="./media/hlbb.mp3" id="origin" controls></audio>
     <input type="button" onclick="origin.play()" value="原始音质 播放" />
     <input type="button" onclick="origin.pause()" value="原始音源 暂停" />
 
@@ -40,14 +42,14 @@
         <option value="allpass">allpass - 标准二阶全通滤波</option>
       </select>
     </label>
-    
+
     <script>
-     let ac = null;
-        try {
-          ac = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-          alert("请更新至最新版的 Chrome 或者 Firefox");
-        }
+      let ac = null;
+      try {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        alert("请更新至最新版的 Chrome 或者 Firefox");
+      }
       {
         const source = ac.createMediaElementSource(audio);
 
@@ -60,17 +62,17 @@
         source.connect(filterNode);
 
         filterNode.connect(ac.destination);
-        
-        console.log('createBiquadFilter 过滤器：', filterNode)
+
+        console.log("createBiquadFilter 过滤器：", filterNode);
 
         select.addEventListener("change", function () {
-          console.log('createBiquadFilter 过滤器：', filterNode);
+          console.log("createBiquadFilter 过滤器：", filterNode);
           filterNode.type = this.value;
         });
-      };
+      }
 
       {
-        const audio = document.querySelector('#origin');
+        const audio = document.querySelector("#origin");
         const source = ac.createMediaElementSource(audio);
 
         const panner = ac.createStereoPanner();

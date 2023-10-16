@@ -8,6 +8,14 @@
     <style>
       body {
         padding: 100px;
+        font-size: 16px;
+        line-height: 32px;
+      }
+      input[type="range"] {
+        width: 500px;
+      }
+      button {
+        font-size: 18px;
       }
     </style>
   </head>
@@ -16,31 +24,154 @@
     <hr />
 
     <input type="file" id="file" />
-    <button>Make white noise 点击发出白噪音</button>
+
+    <ul>
+      <li>音频时长：<b id="duration">0.00</b></li>
+      <li>数据长度：<b id="lengths">0.00</b></li>
+      <li>声道数量：<b id="numberOfChannels">0</b></li>
+      <li>采 样 率：<b id="sampleRate">0</b></li>
+    </ul>
+    <label>
+      裁剪起始时间：<input
+        type="range"
+        id="start"
+        step="0.01"
+        min="0"
+        value="0"
+      />
+      <b id="startOffsetVal">0.00</b>
+    </label>
+    <br />
+    <label>
+      裁剪结束时间：<input
+        type="range"
+        id="end"
+        step="0.01"
+        min="0"
+        value="0"
+      />
+      <b id="endOffsetVal">0.00</b>
+    </label>
+    <br />
+    <br />
+    <button id="cropping">开始裁剪</button>
+    <button id="play">播放裁剪音频</button>
+    <button id="mute">静音</button>
 
     <script>
       {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
-        function ctx(arrayBuffer) {
-          ac.decodeAudioData(arrayBuffer, function (audioBuffer) {
-            // audioBuffer就是AudioBuffer
-            console.log("audioBuffer", audioBuffer);
-          });
-        }
+        let audioBuffer = [];
+        let newAudioBuffer = [];
+        let startOffset = 0;
+        let endOffset = 0;
 
-        file.onchange = function (ev) {
-          const file = ev.target.files[0];
-          const reader = new FileReader();
-          reader.onload = function (res) {
-            console.log(res.target);
-            const arrayBuffer = res.target.result; // 音频数据的ArrayBuffer对象
-            ctx(ArrayBuffer);
-            console.log("arrayBuffer：", arrayBuffer);
-          };
-          reader.readAsArrayBuffer(file); // 通过 readAsArrayBuffer() 方法，读取所上传的音频文件数据（如：MP3格式、OGG格式还是WAV格式，在加载成功后就可获取 ArrayBuffer类型音频数据。
+        function setStartVal(value, is) {
+          if (is) {
+            start.max = value;
+            start.value = 0;
+          } else {
+            startOffset = value;
+            startOffsetVal.innerText = value;
+          }
+        }
+        start.oninput = function () {
+          setStartVal(this.value);
         };
 
+        function setEndVal(value, is) {
+          if (is) {
+            end.max = value;
+            end.value = value;
+          } else {
+            endOffset = value;
+          }
+          endOffsetVal.innerText = value;
+        }
+        end.oninput = function () {
+          setEndVal(this.value);
+        };
+
+        cropping.onclick = function () {
+          /**
+            先创建一个空的AudioBuffer，
+            再根据裁剪起始和结束时间复制现有的通道所对应的数据，然后复制的内容写入到这个空的AudioBuffer，
+            就可以得到一个剪裁后的音频Buffer数据。
+          */
+
+          var channels = audioBuffer.numberOfChannels;
+          var rate = audioBuffer.sampleRate;
+
+          // 截取前10秒
+          var startOffset2 = 0;
+          // var endOffset2 = rate * 10;
+          var endOffset2 = rate * endOffset;
+          // 3秒对应的帧数
+          var frameCount = endOffset2 - startOffset2;
+
+          // 创建同样采用率、同样声道数量，长度是前3秒的空的AudioBuffer
+          newAudioBuffer = new AudioContext().createBuffer(
+            channels,
+            endOffset2 - startOffset2,
+            rate
+          );
+          // 创建临时的Array存放复制的buffer数据
+          var anotherArray = new Float32Array(frameCount);
+          // 声道的数据的复制和写入
+          var offset = 0;
+          for (var channel = 0; channel < channels; channel++) {
+            audioBuffer.copyFromChannel(anotherArray, channel, startOffset2);
+            newAudioBuffer.copyToChannel(anotherArray, channel, offset);
+          }
+          console.log("newAudioBuffer：", newAudioBuffer);
+        };
+
+        let gainNode;
+        function playAudioBuffer(adoBuffer) {
+          // 创建AudioBufferSourceNode对象
+          const source = ac.createBufferSource();
+          source.buffer = adoBuffer;
+          gainNode = ac.createGain();
+          source.connect(gainNode);
+          source.connect(ac.destination);
+          source.start();
+
+          console.log(ac, source, gainNode);;
+        };
+
+        play.onclick = function () {
+          playAudioBuffer(newAudioBuffer);
+        };
+
+        mute.onclick = function () {
+          gainNode.gain.value = Number(!gainNode.gain.value);
+        };
+
+        file.onchange = function (ev) {
+          const file = this.files[0] || ev.target.files[0];
+          const fr = new FileReader();
+          fr.onload = function (res) {
+            console.log("FileReader", res.target);
+            console.log("ArrayBuffer", res.target.result); // 音频数据的ArrayBuffer对象
+
+            // 使用AudioContext对象的decodeAudioData()方法 将ArrayBuffer对象 转为 AudioBuffer对象
+            ac.decodeAudioData(res.target.result, function (adoBuffer) {
+              console.log("AudioBuffer", adoBuffer);
+              audioBuffer = adoBuffer;
+              // playAudioBuffer(adoBuffer);
+
+              setStartVal(adoBuffer.duration, 1);
+              setEndVal(adoBuffer.duration, 1);
+
+              duration.innerText = adoBuffer.duration;
+              lengths.innerText = adoBuffer.length;
+              numberOfChannels.innerText = adoBuffer.numberOfChannels;
+              sampleRate.innerText = adoBuffer.sampleRate;
+            });
+          };
+          fr.readAsArrayBuffer(file); // 通过 readAsArrayBuffer() 方法，读取所上传的音频文件数据（如：MP3格式、OGG格式还是WAV格式，在加载成功后就可获取 ArrayBuffer类型音频数据。
+        };
       }
     </script>
   </body>
