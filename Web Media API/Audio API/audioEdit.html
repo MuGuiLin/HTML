@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>audio音频裁剪</title>
+    <style>
+      body {
+        padding: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Web AudioBuffer() API audio音频裁剪</h1>
+    <hr />
+
+    <input type="file" id="file" />
+    <button>Make white noise 点击发出白噪音</button>
+
+    <script>
+      {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        function ctx(arrayBuffer) {
+          ac.decodeAudioData(arrayBuffer, function (audioBuffer) {
+            // audioBuffer就是AudioBuffer
+            console.log("audioBuffer", audioBuffer);
+          });
+        }
+
+        file.onchange = function (ev) {
+          const file = ev.target.files[0];
+          const reader = new FileReader();
+          reader.onload = function (res) {
+            console.log(res.target);
+            const arrayBuffer = res.target.result; // 音频数据的ArrayBuffer对象
+            ctx(ArrayBuffer);
+            console.log("arrayBuffer：", arrayBuffer);
+          };
+          reader.readAsArrayBuffer(file); // 通过 readAsArrayBuffer() 方法，读取所上传的音频文件数据（如：MP3格式、OGG格式还是WAV格式，在加载成功后就可获取 ArrayBuffer类型音频数据。
+        };
+
+      }
+    </script>
+  </body>
+</html>
