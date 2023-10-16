@@ -42,6 +42,8 @@
 
 ⑥HTML 5.0：2014年10月28日，万维网联盟（W3C）推荐标准。 [HTML5](https://baike.baidu.com/item/HTML5/4234903?fromModule=lemma_inlink)是公认的下一代Web语言，极大地提升了Web在[富媒体](https://baike.baidu.com/item/富媒体/3331198?fromModule=lemma_inlink)、富内容和富应用等方面的能力，被喻为终将改变[移动互联网](https://baike.baidu.com/item/移动互联网/7837035?fromModule=lemma_inlink)的重要推手。[Internet Explorer 8](https://baike.baidu.com/item/Internet Explorer 8/950664?fromModule=lemma_inlink)及以前的版本不支持
 
+W3C 于2017年12月14日发布了HTML5.2规范的更新版本
+
 
 
 ## HTML5 - 新特性
