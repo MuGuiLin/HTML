@@ -9,13 +9,13 @@
       body {
         padding: 100px;
       }
-      audio{
+      audio {
         width: 680px;
       }
       input[type="range"] {
         transform: rotate(-90deg);
       }
-      button{
+      button {
         font-size: 16px;
       }
     </style>
@@ -25,13 +25,16 @@
     <h1>Web Audio API examples: createScriptProcessor()</h1>
     <hr />
 
-    <h3 style="color: blue;" >超高清【8K UHD (7680 × 4320)】， 全景声(WANOS)【 (128个声道 和 128个声音对象)编码技术】</h3>
+    <h3 style="color: blue">
+      超高清【8K UHD (7680 × 4320)】， 全景声(WANOS)【 (128个声道 和
+      128个声音对象)编码技术】
+    </h3>
 
     <br />
     <br />
 
     <button type="button" id="LBTN">左声道（L）</button>
-    <input type="range" id="L" min="0" max="100" style="margin-left: 13px;" />
+    <input type="range" id="L" min="0" max="100" style="margin-left: 13px" />
 
     <audio mute loop controls width="560">
       <source src="./media/hlbb.mp3" type="audio/mp3" />
@@ -65,8 +68,8 @@
         // const audio = new Audio('./media/hlbb.mp3');
         // const audio = document.querySelector("audio");
         const audio = document.querySelector("video");
-		
-		audio.crossOrigin = "anonymous";  // cross-origin - if file is stored on remote server 跨原点-如果文件存储在远程服务器上
+
+        audio.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server 跨原点-如果文件存储在远程服务器上
 
         let source;
         let audioData = [];

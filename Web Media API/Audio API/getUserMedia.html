@@ -61,6 +61,8 @@
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
         ac.addEventListener("sinkchange", () => {
+          // as.state = suspended：暂停、running：正在运行、closed：已关闭
+          
           if (typeof ac.sinkId === "object" && ac.sinkId.type === "none") {
             console.log("音频已更改为不在任何设备上播放！");
           } else {
