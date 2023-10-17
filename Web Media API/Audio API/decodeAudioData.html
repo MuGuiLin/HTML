@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AudioBuffer</title>
+    <title>decodeAudioData()</title>
     <style>
       body {
         padding: 100px;
@@ -12,69 +12,67 @@
     </style>
   </head>
   <body>
-    <h1>Web AudioBuffer() API</h1>
+    <h1>通过ac.decodeAudioData()方法 将ArrayBuffer对象 转为 AudioBuffer对象</h1>
     <hr />
 
-    <button>Make white noise 点击发出白噪音</button>
+    <h4>本地音频文件点播</h4>
+    <div>
+      <input type="file" id="file" placeholder="请选择音频文件" />
+      <button id="play">播放</button>
+      <button id="pause">停止</button>
+    </div>
+    <br />
 
     <script>
       {
-        const button = document.querySelector("button");
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
 
-        let ac;
+        let bufferData = null;
+        let AudioBufferSourceNode = null;
 
-        // 立体声 2.1 L, E, R
-        let channels = 2.0;
+        file.addEventListener("change", function () {
+          const file = this.files[0];
+          const fr = new FileReader();
 
-        function init() {
-          ac = new (window.AudioContext || window.webkitAudioContext)();
-        }
+          fr.addEventListener("load", function (e) {
+            ac.decodeAudioData(
+              e.target.result,
+              function (buffer) {
+                // playFun(buffer);  // 解码后返回的AudioBuffer对象作为播放函数的参数传入
+                console.log("音乐载入完毕");
+                bufferData = buffer;
 
-        button.onclick = () => {
-          if (!ac) {
-            init();
-          }
+                /* 写到 decodeAudioData 事件内部，当音乐加载完毕后才能执行播放和停止 */
+                // 播放
+                play.onclick = function () {
+                  console.log("播放");
+                  AudioBufferSourceNode = ac.createBufferSource(); // 必须在播放时重新创建 AudioBufferSourceNode 对象，否则会出现不能再次播放的问题
+                  AudioBufferSourceNode.buffer = bufferData; // AudioBuffer数据赋值给buffer属性
+                  AudioBufferSourceNode.connect(ac.destination); // 如果只是播放音频，这边就直接将AudioBufferSourceNode连接到AudioDestinationNode
 
-          // 以AudioContext的采样率创建一个空的两秒立体声缓冲区
-          const frameCount = ac.sampleRate * 2.0;
+                  AudioBufferSourceNode.start(0); // 开始播放音频
+                  console.log("音乐状态:", ac.state);
+                };
 
-          const buffer = new AudioBuffer({
-            numberOfChannels: channels,
-            length: frameCount,
-            sampleRate: ac.sampleRate,
+                // 停止
+                pause.onclick = function () {
+                  console.log("停止");
+                  AudioBufferSourceNode.stop(0); // 停止播放音乐
+                  console.log("音乐状态:", ac.state);
+                };
+              },
+              function (err) {
+                console.log(err);
+              }
+            );
           });
-
-          //用白噪声填充缓冲区；
-          //只是-1.0和1.0之间的随机值(Math.random() * 2 - 1)
-          for (let channel = 0; channel < channels; channel++) {
-            // This gives us the actual array that contains the data
-            const nowBuffering = buffer.getChannelData(channel);
-            for (let i = 0; i < frameCount; i++) {
-              // Math.random() is in [0; 1.0]
-              // audio needs to be in [-1.0; 1.0]
-              nowBuffering[i] = Math.random() * 2 - 1;
-            }
-          }
-
-          //获取AudioBufferSourceNode。
-          //这是要播放AudioBuffer时要使用的AudioNode
-          const source = ac.createBufferSource();
-          // Set the buffer in the AudioBufferSourceNode
-          source.buffer = buffer;
-          // Connect the AudioBufferSourceNode to the
-          // destination so we can hear the sound
-          source.connect(ac.destination);
-          // start the source playing
-          source.start();
-
-          source.onended = () => {
-            console.log("白噪音结束。");
-          };
-        };
+          fr.readAsArrayBuffer(file);
+        });
       }
 
       {
         const video = document.createElement("video");
+
         const ac = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = ac.createAnalyser();
 

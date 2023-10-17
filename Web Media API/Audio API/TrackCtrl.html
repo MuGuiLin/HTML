@@ -9,8 +9,14 @@
       body {
         padding: 100px;
       }
+      audio{
+        width: 680px;
+      }
       input[type="range"] {
         transform: rotate(-90deg);
+      }
+      button{
+        font-size: 16px;
       }
     </style>
   </head>
@@ -24,8 +30,8 @@
     <br />
     <br />
 
-    <button type="button" id="LBTN">静音左声道（L）</button>
-    <input type="range" id="L" min="0" max="100" />
+    <button type="button" id="LBTN">左声道（L）</button>
+    <input type="range" id="L" min="0" max="100" style="margin-left: 13px;" />
 
     <audio mute loop controls width="560">
       <source src="./media/hlbb.mp3" type="audio/mp3" />
@@ -34,22 +40,22 @@
     </audio>
 
     <input type="range" id="R" min="0" max="100" />
-    <button type="button" id="RBTN">静音右声道（R）</button>
+    <button type="button" id="RBTN">右声道（R）</button>
 
     <br /><br /><br />
     <br /><br /><br />
 
     <div>
-      <button type="button" id="SLBTN">静音左环绕声道（SL）</button>
+      <button type="button" id="SLBTN">左环绕（SL）</button>
       <input type="range" id="SL" min="0" max="100" />
 
-      <video mute loop controls width="560">
+      <video mute loop controls width="680">
         <source src="./media/Project DT-5.1.mp4" type="video/mp4" />
         <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
       </video>
 
       <input type="range" id="SR" min="0" max="100" />
-      <button type="button" id="SRBTN">静音右环绕声道（SR）</button>
+      <button type="button" id="SRBTN">右环绕（SR）</button>
     </div>
 
     <script>

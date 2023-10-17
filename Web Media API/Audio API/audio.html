@@ -132,43 +132,6 @@
       }
 
       {
-        // 创建一个AudioContext
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-
-        // 加载音频资源
-        fetch("./media/AAC-5.1.mp4")
-          .then((response) => {
-            return response.arrayBuffer();
-          })
-          .then((arrayBuffer) => {
-            return ac.decodeAudioData(arrayBuffer);
-          })
-          .then((audioBuffer) => {
-            // 获取音频源并创建两个独立的音频源
-            let sourceLeft = ac.createBufferSource();
-            // let sourceRight = ac.createBufferSource();
-
-            // 分别将音频数据赋值给左右两个音频源
-            sourceLeft.buffer = audioBuffer;
-            // sourceRight.buffer = audioBuffer;
-
-            // 创建两个分轨并分别连接至音频源
-            let trackLeft = ac.createGain();
-            // let trackRight = ac.createGain();
-
-            sourceLeft.connect(trackLeft);
-            // sourceRight.connect(trackRight);
-
-            trackLeft.connect(ac.destination);
-            // trackRight.connect(ac.destination);
-
-            // 开始播放
-            // sourceLeft.start();
-            // sourceRight.start();
-          });
-      }
-
-      {
         const audioElement = new Audio("./media/202107.mp4");
         audioElement.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
 
