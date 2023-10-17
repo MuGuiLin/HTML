@@ -17,20 +17,32 @@
       button {
         font-size: 18px;
       }
+      progress {
+        width: 1000px;
+      }
     </style>
   </head>
   <body>
-    <h1>Web AudioBuffer() API audio音频裁剪</h1>
+    <h1>通过ac.decodeAudioData()方法 将ArrayBuffer对象 转为 AudioBuffer对象 实现audio音频裁剪</h1>
     <hr />
 
+    <h4>当前音频信息：</h4>
     <input type="file" id="file" />
-
     <ul>
-      <li>音频时长：<b id="duration">0.00</b></li>
-      <li>数据长度：<b id="lengths">0.00</b></li>
-      <li>声道数量：<b id="numberOfChannels">0</b></li>
-      <li>采 样 率：<b id="sampleRate">0</b></li>
+      <li>
+        音频时长：<b id="duration">00.00</b>， 数据长度：<b id="lengths">0</b>，
+        声道数量：<b id="numberOfChannels">0</b>， 采样率：<b id="sampleRate"
+          >0</b
+        >
+      </li>
     </ul>
+    <hr />
+
+    <h4>历史音频列表：</h4>
+    <ul id="list"></ul>
+    <hr />
+
+    <h4>音频裁剪操作：</h4>
     <label>
       裁剪起始时间：<input
         type="range"
@@ -53,16 +65,36 @@
       <b id="endOffsetVal">0.00</b>
     </label>
     <br />
+    <hr />
     <br />
-    <button id="cropping">开始裁剪</button>
-    <button id="play">播放裁剪音频</button>
+    <button id="cropping">裁剪</button>
+    <button id="play">初始化裁剪音频</button>
     <button id="mute">静音</button>
+    <button id="resumeOrsuspend">播放 / 暂停</button>
+
+    <h4>音频播放响度：</h4>
+    <progress id="progress" max="1000" value="0"></progress>
 
     <script>
+      let renderInter;
       {
+        // 如果音频是关闭状态，则重新新建一个全局音频上下文
+        // if (ac.state === 'closed') {
+        //   ac = new (window.AudioContext || window.webkitAudioContext)();
+        // }
         const ac = new (window.AudioContext || window.webkitAudioContext)();
+        ac.onstatechange = function (e) {
+          console.log("当AudioContext的状态发生变化时执行：", ac.state, e);
+          if ("suspended" === ac.state) {
+            getByteFrequencyData();
+          }
+          if ("running " === ac.state) {
+            renderInter && clearInterval(renderInter);
+          }
+        };
 
         let audioBuffer = [];
+        let audioBuffers = [];
         let newAudioBuffer = [];
         let startOffset = 0;
         let endOffset = 0;
@@ -84,15 +116,15 @@
           if (is) {
             end.max = value;
             end.value = value;
-          } else {
-            endOffset = value;
           }
+          endOffset = value;
           endOffsetVal.innerText = value;
         }
         end.oninput = function () {
           setEndVal(this.value);
         };
 
+        // 裁剪
         cropping.onclick = function () {
           /**
             先创建一个空的AudioBuffer，
@@ -110,7 +142,7 @@
           // 3秒对应的帧数
           var frameCount = endOffset2 - startOffset2;
 
-          // 创建同样采用率、同样声道数量，长度是前3秒的空的AudioBuffer
+          // 创建同样采用率、同样声道数量，长度是前endOffset秒的空的AudioBuffer
           newAudioBuffer = new AudioContext().createBuffer(
             channels,
             endOffset2 - startOffset2,
@@ -128,25 +160,68 @@
         };
 
         let gainNode;
-        function playAudioBuffer(adoBuffer) {
+        let analyser;
+        function playAudioBuffer(buffer) {
           // 创建AudioBufferSourceNode对象
-          const source = ac.createBufferSource();
-          source.buffer = adoBuffer;
-          gainNode = ac.createGain();
-          source.connect(gainNode);
-          source.connect(ac.destination);
-          source.start();
+          const bufferSource = ac.createBufferSource();
+          bufferSource.buffer = buffer;
+          bufferSource.onended = function (res) {
+            console.log("播放结束！");
+          };
 
-          console.log(ac, source, gainNode);;
-        };
+          // 创建音量控制节点
+          gainNode = ac.createGain();
+          // gainNode.gain.value = gainValue;
+
+          // 创建音频分析节点
+          analyser = ac.createAnalyser();
+          // analyser.fftSize = fftSize;
+
+          bufferSource.connect(analyser);
+          analyser.connect(gainNode);
+          gainNode.connect(ac.destination);
+
+          bufferSource.start(0);
+          getByteFrequencyData();
+          console.log(ac, bufferSource, gainNode);
+        }
+
+        // 获取音频解析数据
+        function getByteFrequencyData() {
+          const arr = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(arr);
+          // console.log("音频解析数据：", arr);
+          progress.value =
+            ~~Object.values(arr).reduce((a, b) => a + b, 0) * 0.01;
+          renderInter = window.requestAnimationFrame(getByteFrequencyData);
+        }
 
         play.onclick = function () {
           playAudioBuffer(newAudioBuffer);
         };
 
+        // 静音
         mute.onclick = function () {
           gainNode.gain.value = Number(!gainNode.gain.value);
         };
+
+        // 播放/暂停
+        resumeOrsuspend.onclick = function () {
+          if ("suspended" === ac.state) {
+            // 注：只有在当前AudioContext被挂起的状态下，才能使用resume进行重新激活 来实现播放
+            ac.resume();
+          } else {
+            // 挂起当前播放 来实现暂停
+            ac.suspend();
+          }
+        };
+
+        function adoBufferList(buffer, file) {
+          audioBuffers.push(buffer);
+          const li = document.createElement("li");
+          li.innerHTML = `音频名称：${file.name}，音频大小：${file.size}，音频时长：${buffer.duration}`;
+          list.append(li);
+        }
 
         file.onchange = function (ev) {
           const file = this.files[0] || ev.target.files[0];
@@ -156,18 +231,19 @@
             console.log("ArrayBuffer", res.target.result); // 音频数据的ArrayBuffer对象
 
             // 使用AudioContext对象的decodeAudioData()方法 将ArrayBuffer对象 转为 AudioBuffer对象
-            ac.decodeAudioData(res.target.result, function (adoBuffer) {
-              console.log("AudioBuffer", adoBuffer);
-              audioBuffer = adoBuffer;
-              // playAudioBuffer(adoBuffer);
+            ac.decodeAudioData(res.target.result, function (buffer) {
+              console.log("AudioBuffer", buffer);
+              audioBuffer = buffer;
+              // playAudioBuffer(buffer);
 
-              setStartVal(adoBuffer.duration, 1);
-              setEndVal(adoBuffer.duration, 1);
+              setStartVal(buffer.duration, 1);
+              setEndVal(buffer.duration, 1);
+              adoBufferList(buffer, file);
 
-              duration.innerText = adoBuffer.duration;
-              lengths.innerText = adoBuffer.length;
-              numberOfChannels.innerText = adoBuffer.numberOfChannels;
-              sampleRate.innerText = adoBuffer.sampleRate;
+              duration.innerText = buffer.duration;
+              lengths.innerText = buffer.length;
+              numberOfChannels.innerText = buffer.numberOfChannels;
+              sampleRate.innerText = buffer.sampleRate;
             });
           };
           fr.readAsArrayBuffer(file); // 通过 readAsArrayBuffer() 方法，读取所上传的音频文件数据（如：MP3格式、OGG格式还是WAV格式，在加载成功后就可获取 ArrayBuffer类型音频数据。
