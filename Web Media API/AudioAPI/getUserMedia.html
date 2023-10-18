@@ -57,7 +57,8 @@
     >
 
     <script>
-      {
+      let isInit = true;
+      function init() {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
         ac.addEventListener("sinkchange", () => {
@@ -233,7 +234,6 @@
           }
 
           function animate() {
-            console.log(6);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             // analyser.getByteTimeDomainData(dataArray);
             analyser.getByteFrequencyData(dataArray);
@@ -337,6 +337,13 @@
           ac && ac.close();
         }
       }
+      document.onclick = function () {
+        if (isInit) {
+          isInit = false;
+          init();
+          document.onclick = null;
+        }
+      };
 
       {
         class SoundMeter {

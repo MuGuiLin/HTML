@@ -25,7 +25,10 @@
         font-size: 16px;
       }
       input[type="range"] {
-        transform: rotate(-90deg);
+        /* transform: rotate(-90deg); */
+      }
+      #column {
+        width: 560px;
       }
       progress {
         width: 1288px;
@@ -97,10 +100,12 @@
     <h4>响度</h4>
     <progress max="100" value="0" id="progress"></progress>
 
-    <h4>示波器波形效果</h4>
+    <h4>示波器波形效果：</h4>
     <canvas width="1288" height="300" id="canvas1"></canvas>
 
-    <h4>频率条形图效果</h4>
+    <h4>频率条形图效果：</h4>
+    音柱数量：<input type="range" id="column" value="64" min="1" max="2048" /> <b id="columnNum">64</b>
+    <br />
     <canvas width="1288" height="300" id="canvas2"></canvas>
 
     <script>
@@ -171,8 +176,8 @@
 
         const canvas2 = document.querySelector("#canvas2");
         const ctx2 = canvas2.getContext("2d");
-        const rectSize = 68; // 音柱数量
-        const rectArray = [];
+        let rectSize = 64; // 音柱数量
+        let rectArray = [];
         for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
         function draw2() {
           ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
@@ -206,6 +211,13 @@
             }
           }
         }
+
+        column.oninput = function () {
+          rectSize = this.value;
+          columnNum.innerText = this.value;
+          rectArray = [];
+          for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
+        };
 
         let timer = null;
         let types = "";
