@@ -9,7 +9,7 @@
     </title>
     <style>
       body {
-        padding: 100px;
+        padding: 50px 100px;
       }
       p {
         font-size: 16px;
@@ -50,20 +50,28 @@
       <br>要获取波形数据，可使用 AnalyserNode.getByteTimeDomainData() 或 AnalyserNode.getFloatTimeDomainData() 方法。
       -->
     </p>
-    <br />
 
-    添加音视频：<input id="file" type="file" />
+    添加本地音视频：<input id="file" type="file" />
 
     <select id="select">
+      <option value="">频率、波形 混合</option>
       <option value="getByteFrequencyData">getByteFrequencyData 频率</option>
       <option value="getFloatFrequencyData">getFloatFrequencyData 频率</option>
       <option value="getByteTimeDomainData">getByteTimeDomainData 波形</option>
       <option value="getFloatTimeDomainData">
         getFloatTimeDomainData 波形
       </option>
-      <option value="getByteFrequencyData and getByteTimeDomainData">
-        频率波形混合
-      </option>
+    </select>
+
+    <select id="filter">
+      <option value="lowpass">lowpass - 低通滤波</option>
+      <option value="highpass">highpass - 高通滤波</option>
+      <option value="bandpass">bandpass - 带通滤波</option>
+      <option value="lowshelf">lowshelf - 低架滤波</option>
+      <option value="highshelf">highshelf - 高架滤波</option>
+      <option value="peaking">peaking - 峰值滤波</option>
+      <option value="notch">notch - 标准陷波滤波</option>
+      <option value="allpass">allpass - 标准二阶全通滤波</option>
     </select>
 
     <br />
@@ -107,11 +115,20 @@
         // 声源对象
         const source = ac.createMediaElementSource(audio); // 从标签元素 获取声源
         // const source = ac.createMediaStreamSource(audio); // 从麦克风、网络请求 获取声源
+
         // 分析器
         const analyser = ac.createAnalyser();
+
+        // 滤波器
+        const filterNode = ac.createBiquadFilter("lowpass");
+
         // 将analyser分析器节点 连接到 source声源
         source.connect(analyser);
         analyser.connect(ac.destination);
+
+        // 将filterNode分析器节点 连接到 source声源
+        source.connect(filterNode);
+        filterNode.connect(ac.destination);
 
         // analyser.fftSize = 4096;
         // analyser.fftSize = 2048; // 默认 analyser.fftSize
@@ -166,7 +183,7 @@
             const x = i * width + canvas2.width / 2;
             const x2 = canvas2.width / 2 - (i + 1) * width;
 
-            const linear = ctx2.createLinearGradient(0, 160, 0, canvas2.height);
+            const linear = ctx2.createLinearGradient(0, 100, 0, canvas2.height);
             linear.addColorStop(0, "red");
             linear.addColorStop(0.5, "yellow");
             linear.addColorStop(1, "green");
@@ -191,7 +208,7 @@
         }
 
         let timer = null;
-        let types = "getByteFrequencyData";
+        let types = "";
         function animate() {
           /*
         getByteTimeDomainData // 一段时间内；用于“示波器”可视化数据展示等
@@ -240,6 +257,10 @@
           types = this.value;
         });
 
+        filter.addEventListener("change", function () {
+          filterNode.type = this.value;
+        });
+
         audio.addEventListener("play", function (event) {
           animate();
         });
@@ -254,7 +275,6 @@
 
         file.addEventListener("change", function () {
           const file = this.files[0];
-          console.log(file);
           if ("video/mp4".startsWith("video")) {
             // video.src = window.URL.createObjectURL(file);
             audio.src = window.URL.createObjectURL(file);

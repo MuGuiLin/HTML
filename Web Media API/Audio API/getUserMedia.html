@@ -34,9 +34,9 @@
         <option value="lowpass">lowpass - 低通滤波</option>
         <option value="highpass">highpass - 高通滤波</option>
         <option value="bandpass">bandpass - 带通滤波</option>
-        <option value="lowshelf">lowshelf - 滤波</option>
-        <option value="highshelf">highshelf - 滤波</option>
-        <option value="peaking">peaking - 滤波</option>
+        <option value="lowshelf">lowshelf - 低架滤波</option>
+        <option value="highshelf">highshelf - 高架滤波</option>
+        <option value="peaking">peaking - 峰值滤波</option>
         <option value="notch">notch - 标准陷波滤波</option>
         <option value="allpass">allpass - 标准二阶全通滤波</option>
       </select>
@@ -150,15 +150,15 @@
           // 创建一个用于通过JavaScript直接处理音频
           const scriptProcessor = ac.createScriptProcessor(2048, 6, 6);
 
-          // // filter为一个中间处理器，用来过滤音频
-          // const filter = ac.createBiquadFilter("lowpass");
-          // // mediaSource -> filter -> destination.
-          // mediaSource.connect(filter);
-          // filter.connect(ac.destination);
-          // select.addEventListener("change", function () {
-          //   console.log("createBiquadFilter 过滤器：", filter);
-          //   filter.type = this.value;
-          // });
+          // filter为一个中间处理器，用来过滤音频
+          const filter = ac.createBiquadFilter("lowpass");
+          // mediaSource -> filter -> destination.
+          mediaSource.connect(filter);
+          filter.connect(ac.destination);
+          select.addEventListener("change", function () {
+            console.log("createBiquadFilter 过滤器：", filter);
+            filter.type = this.value;
+          });
 
           scriptProcessor.onaudioprocess = (evt) => {
             // outputBuffer
