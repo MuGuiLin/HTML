@@ -52,7 +52,7 @@
     </p>
     <br />
 
-    <input id="file" type="file" />
+    添加音视频：<input id="file" type="file" />
 
     <select id="select">
       <option value="getByteFrequencyData">getByteFrequencyData 频率</option>
@@ -76,7 +76,7 @@
         <source src="./media/hlbb.mp3" type="audio/mp3" />
       </audio>
       -->
-      <video mute controls loop width="560">
+      <video mute controls loop width="800">
         <source src="./media/程欣-重来.mp3" type="audio/mp3" />
         <source src="./media/202107.mp4" type="video/mp4" />
       </video>
@@ -96,170 +96,181 @@
     <canvas width="1288" height="300" id="canvas2"></canvas>
 
     <script>
-      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      let isInit = true;
+      function init() {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
 
-      // const audio = new Audio("./media/hlbb.mp3");
-      // const audio = document.querySelector("audio");
-      const audio = document.querySelector("video");
+        // const audio = new Audio("./media/hlbb.mp3");
+        // const audio = document.querySelector("audio");
+        const audio = document.querySelector("video");
 
-      // 声源对象
-      const source = ac.createMediaElementSource(audio); // 从标签元素 获取声源
-      // const source = ac.createMediaStreamSource(audio); // 从麦克风、网络请求 获取声源
-      // 分析器
-      const analyser = ac.createAnalyser();
-      // 将analyser分析器节点 连接到 source声源
-      source.connect(analyser);
-      analyser.connect(ac.destination);
+        // 声源对象
+        const source = ac.createMediaElementSource(audio); // 从标签元素 获取声源
+        // const source = ac.createMediaStreamSource(audio); // 从麦克风、网络请求 获取声源
+        // 分析器
+        const analyser = ac.createAnalyser();
+        // 将analyser分析器节点 连接到 source声源
+        source.connect(analyser);
+        analyser.connect(ac.destination);
 
-      // analyser.fftSize = 4096;
-      // analyser.fftSize = 2048; // 默认 analyser.fftSize
-      // analyser.fftSize = 1024; // 默认 analyser.frequencyBinCount
-      // analyser.fftSize = 512;
-      // analyser.fftSize = 256;
+        // analyser.fftSize = 4096;
+        // analyser.fftSize = 2048; // 默认 analyser.fftSize
+        // analyser.fftSize = 1024; // 默认 analyser.frequencyBinCount
+        // analyser.fftSize = 512;
+        // analyser.fftSize = 256;
 
-      const arrayBuffer = new Uint8Array(analyser.fftSize);
-      const arrayBuffer2 = new Float32Array(analyser.fftSize);
+        const arrayBuffer = new Uint8Array(analyser.fftSize);
+        const arrayBuffer2 = new Float32Array(analyser.fftSize);
 
-      const canvas1 = document.querySelector("#canvas1");
-      const ctx1 = canvas1.getContext("2d");
-      function draw1() {
-        ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
-        ctx1.beginPath();
-        ctx1.lineWidth = 2;
-        ctx1.strokeStyle = "blue";
-        const width = (canvas1.width * 1.0) / analyser.fftSize;
-        let x = 0;
-        for (let i = 0; i < analyser.fftSize; i++) {
-          const v = arrayBuffer[i] / 128.0;
-          const y = (v * canvas1.height) / 2;
-          if (i === 0) {
-            ctx1.moveTo(x, y);
-          } else {
-            ctx1.lineTo(x, y);
+        const canvas1 = document.querySelector("#canvas1");
+        const ctx1 = canvas1.getContext("2d");
+        function draw1() {
+          ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+          ctx1.beginPath();
+          ctx1.lineWidth = 2;
+          ctx1.strokeStyle = "blue";
+          const width = (canvas1.width * 1.0) / analyser.fftSize;
+          let x = 0;
+          for (let i = 0; i < analyser.fftSize; i++) {
+            const v = arrayBuffer[i] / 128.0;
+            const y = (v * canvas1.height) / 2;
+            if (i === 0) {
+              ctx1.moveTo(x, y);
+            } else {
+              ctx1.lineTo(x, y);
+            }
+            x += width;
+
+            progress.value = v * 10;
           }
-          x += width;
-
-          progress.value = v * 10;
+          ctx1.stroke();
+          ctx1.strokeStyle = "#000";
+          ctx1.lineWidth = 0.5;
+          ctx1.beginPath();
+          ctx1.moveTo(0, canvas1.height / 2);
+          ctx1.lineTo(canvas1.width, canvas1.height / 2);
+          ctx1.stroke();
         }
-        ctx1.stroke();
-        ctx1.strokeStyle = "#000";
-        ctx1.lineWidth = 0.5;
-        ctx1.beginPath();
-        ctx1.moveTo(0, canvas1.height / 2);
-        ctx1.lineTo(canvas1.width, canvas1.height / 2);
-        ctx1.stroke();
-      }
 
-      const canvas2 = document.querySelector("#canvas2");
-      const ctx2 = canvas2.getContext("2d");
-      const rectSize = 68; // 音柱数量
-      const rectArray = [];
-      for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
-      function draw2() {
-        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-        let width = canvas2.width / rectSize;
-        for (let i = 0; i < rectSize; i++) {
-          const height = arrayBuffer[i];
-          const y = canvas2.height - height;
-          const x = i * width + canvas2.width / 2;
-          const x2 = canvas2.width / 2 - (i + 1) * width;
+        const canvas2 = document.querySelector("#canvas2");
+        const ctx2 = canvas2.getContext("2d");
+        const rectSize = 68; // 音柱数量
+        const rectArray = [];
+        for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
+        function draw2() {
+          ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+          let width = canvas2.width / rectSize;
+          for (let i = 0; i < rectSize; i++) {
+            const height = arrayBuffer[i];
+            const y = canvas2.height - height;
+            const x = i * width + canvas2.width / 2;
+            const x2 = canvas2.width / 2 - (i + 1) * width;
 
-          const linear = ctx2.createLinearGradient(0, 160, 0, canvas2.height);
-          linear.addColorStop(0, "red");
-          linear.addColorStop(0.5, "yellow");
-          linear.addColorStop(1, "green");
+            const linear = ctx2.createLinearGradient(0, 160, 0, canvas2.height);
+            linear.addColorStop(0, "red");
+            linear.addColorStop(0.5, "yellow");
+            linear.addColorStop(1, "green");
 
-          ctx2.fillStyle = linear;
-          ctx2.fillRect(x, y, width - 5, height);
-          ctx2.fillRect(x2, y, width - 5, height);
+            ctx2.fillStyle = linear;
+            ctx2.fillRect(x, y, width - 5, height);
+            ctx2.fillRect(x2, y, width - 5, height);
 
-          const o = rectArray[i];
-          ctx2.fillStyle = "blue";
-          ctx2.fillRect(x, canvas2.height - (o.top + 12), width - 5, 8);
-          ctx2.fillRect(x2, canvas2.height - (o.top + 12), width - 5, 8);
+            const o = rectArray[i];
+            ctx2.fillStyle = "blue";
+            ctx2.fillRect(x, canvas2.height - (o.top + 12), width - 5, 8);
+            ctx2.fillRect(x2, canvas2.height - (o.top + 12), width - 5, 8);
 
-          o.top -= 3;
-          if (o.top < 0) {
-            o.top = 0;
-          }
-          if (height > 0 && o.top < height) {
-            o.top = height;
+            o.top -= 3;
+            if (o.top < 0) {
+              o.top = 0;
+            }
+            if (height > 0 && o.top < height) {
+              o.top = height;
+            }
           }
         }
-      }
 
-      let timer = null;
-      let types = "getByteFrequencyData";
-      function animate() {
-        /*
+        let timer = null;
+        let types = "getByteFrequencyData";
+        function animate() {
+          /*
         getByteTimeDomainData // 一段时间内；用于“示波器”可视化数据展示等
           可用线状图来可视化TimeDomain数据，
           其中x轴(也就是“原域”)是时间。
           Y轴是一个信号的量度(也就是“振幅”)。
         */
 
-        /*
+          /*
         getByteFrequencyData // 一个时间点；用于“均衡器”可视化数据展示等
           可用条形图来可视化频率数据。
           其中x轴(又称“域”)是频率或频带。
           Y轴是每个频带的强度。
         */
 
-        switch (types) {
-          case "getByteFrequencyData":
-            analyser.getByteFrequencyData(arrayBuffer);
-            break;
+          switch (types) {
+            case "getByteFrequencyData":
+              analyser.getByteFrequencyData(arrayBuffer);
+              break;
 
-          case "getFloatFrequencyData":
-            // 给出了底部的图表(x轴是频率);
-            analyser.getFloatFrequencyData(arrayBuffer2);
-            break;
+            case "getFloatFrequencyData":
+              // 给出了底部的图表(x轴是频率);
+              analyser.getFloatFrequencyData(arrayBuffer2);
+              break;
 
-          case "getByteTimeDomainData":
-            analyser.getByteTimeDomainData(arrayBuffer);
-            break;
+            case "getByteTimeDomainData":
+              analyser.getByteTimeDomainData(arrayBuffer);
+              break;
 
-          case "getFloatTimeDomainData":
-            // 给出顶部的图表(x轴是时间)
-            analyser.getFloatTimeDomainData(arrayBuffer2);
-            break;
+            case "getFloatTimeDomainData":
+              // 给出顶部的图表(x轴是时间)
+              analyser.getFloatTimeDomainData(arrayBuffer2);
+              break;
 
-          default:
-            analyser.getByteTimeDomainData(arrayBuffer);
-            analyser.getByteFrequencyData(arrayBuffer);
+            default:
+              analyser.getByteTimeDomainData(arrayBuffer);
+              analyser.getByteFrequencyData(arrayBuffer);
+          }
+
+          draw1();
+          draw2();
+          timer = requestAnimationFrame(animate);
         }
 
-        draw1();
-        draw2();
-        timer = requestAnimationFrame(animate);
+        select.addEventListener("change", function (event) {
+          types = this.value;
+        });
+
+        audio.addEventListener("play", function (event) {
+          animate();
+        });
+
+        audio.addEventListener("ended", function (event) {
+          cancelAnimationFrame(timer);
+        });
+
+        audio.addEventListener("pause", function (event) {
+          cancelAnimationFrame(timer);
+        });
+
+        file.addEventListener("change", function () {
+          const file = this.files[0];
+          console.log(file);
+          if ("video/mp4".startsWith("video")) {
+            // video.src = window.URL.createObjectURL(file);
+            audio.src = window.URL.createObjectURL(file);
+          } else {
+            audio.src = window.URL.createObjectURL(file);
+          }
+        });
       }
 
-      select.addEventListener("change", function (event) {
-        types = this.value;
-      });
-
-      audio.addEventListener("play", function (event) {
-        animate();
-      });
-
-      audio.addEventListener("ended", function (event) {
-        cancelAnimationFrame(timer);
-      });
-
-      audio.addEventListener("pause", function (event) {
-        cancelAnimationFrame(timer);
-      });
-
-      file.addEventListener("change", function () {
-        const file = this.files[0];
-        console.log(file);
-        if ("video/mp4".startsWith("video")) {
-          // video.src = window.URL.createObjectURL(file);
-          audio.src = window.URL.createObjectURL(file);
-        } else {
-          audio.src = window.URL.createObjectURL(file);
+      document.onclick = function () {
+        if (isInit) {
+          isInit = false;
+          init();
+          document.onclick = null;
         }
-      });
+      };
     </script>
   </body>
 </html>
