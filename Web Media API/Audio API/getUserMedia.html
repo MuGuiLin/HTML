@@ -235,7 +235,8 @@
           function animate() {
             console.log(6);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            analyser.getByteTimeDomainData(dataArray);
+            // analyser.getByteTimeDomainData(dataArray);
+            analyser.getByteFrequencyData(dataArray);
             let width = canvas.width / size;
             for (let i = 0; i < size; i++) {
               const height = dataArray[i];

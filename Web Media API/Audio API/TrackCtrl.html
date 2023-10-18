@@ -9,8 +9,9 @@
       body {
         padding: 100px;
       }
-      audio {
-        width: 680px;
+      audio,
+      input[type="file"] {
+        width: 671px;
       }
       input[type="range"] {
         transform: rotate(-90deg);
@@ -36,11 +37,7 @@
     <button type="button" id="LBTN">左声道（L）</button>
     <input type="range" id="L" min="0" max="100" style="margin-left: 13px" />
 
-    <audio mute loop controls width="560">
-      <source src="./media/hlbb.mp3" type="audio/mp3" />
-      <source src="./media/viper.ogg" type="audio/ogg" />
-      <p>This demo needs a browser supporting the &lt;audio&gt; element.</p>
-    </audio>
+    添加本地音视频：<input id="file" type="file" />
 
     <input type="range" id="R" min="0" max="100" />
     <button type="button" id="RBTN">右声道（R）</button>
@@ -52,7 +49,7 @@
       <button type="button" id="SLBTN">左环绕（SL）</button>
       <input type="range" id="SL" min="0" max="100" />
 
-      <video mute loop controls width="680">
+      <video mute loop controls width="800">
         <source src="./media/Project DT-5.1.mp4" type="video/mp4" />
         <p>This demo needs a browser supporting the &lt;video&gt; element.</p>
       </video>
@@ -62,13 +59,10 @@
     </div>
 
     <script>
-      {
+      let isInit = true;
+      function init() {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
-
-        // const audio = new Audio('./media/hlbb.mp3');
-        // const audio = document.querySelector("audio");
         const audio = document.querySelector("video");
-
         audio.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server 跨原点-如果文件存储在远程服务器上
 
         let source;
@@ -128,7 +122,7 @@
         // 循环PCM数据并计算平均值
         // 给定2048样本缓冲区的体积
         processor.onaudioprocess = function (evt) {
-          console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
+          // console.log("音频通道数量：", evt.inputBuffer.numberOfChannels);
           {
             let input = evt.inputBuffer.getChannelData(0),
               len = input.length,
@@ -193,7 +187,6 @@
 
         {
           // const audio = new Audio("./media/202107.mp4");
-
           let isPlaying;
           function playPause() {
             // check if context is in suspended state (autoplay policy)
@@ -230,7 +223,26 @@
             console.log(volumeNodeSR.gain.value);
           };
         }
+
+        file.addEventListener("change", function () {
+          const file = this.files[0];
+          console.log(file);
+          if ("video/mp4".startsWith("video")) {
+            // video.src = window.URL.createObjectURL(file);
+            audio.src = window.URL.createObjectURL(file);
+          } else {
+            audio.src = window.URL.createObjectURL(file);
+          }
+        });
       }
+
+      document.onclick = function () {
+        if (isInit) {
+          isInit = false;
+          init();
+          document.onclick = null;
+        }
+      };
     </script>
   </body>
 </html>
