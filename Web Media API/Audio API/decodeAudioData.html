@@ -72,33 +72,45 @@
 
       {
         const video = document.createElement("video");
+        video.src = "./media/202107.mp4"; // 先加载视频文件
+        document.body.append(video);
+
+        let timer = null;
 
         const ac = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = ac.createAnalyser();
+        // 获取音频数据的频率和通道数
+        const bufferLength = analyser.frequencyBinCount;
+        const buffer = new Uint8Array(bufferLength);
 
-        // 先加载视频文件
-        video.src = "./media/202107.mp4";
+        function update() {
+          // 使用requestAnimationFrame确保音频采样率与系统时间同步
+          analyser.getByteFrequencyData(buffer);
+          console.log(buffer);
+          // 使用傅里叶变换获取频率数据后，可以处理每个频率值
+          for (let i = 0; i < bufferLength; i++) {
+            // console.log(i, buffer[i]);
+          }
+          // 每一帧更新时都会调用update方法，因此可以在此继续处理其他音频数据
+          requestAnimationFrame(update);
+        }
 
-        video.addEventListener("loadedmetadata", function () {
+        video.addEventListener("loadedmetadata", function (event) {
           // 当视频元数据加载完成后，连接AnalyserNode
           analyser.connect(ac.destination);
+          this.play();
+        });
 
-          // 获取音频数据的频率和通道数
-          const bufferLength = analyser.frequencyBinCount;
-          const buffer = new Uint8Array(bufferLength);
+        video.addEventListener("playing", function () {
+          update();
+        });
 
-          //  console.log(ac.destination, bufferLength, buffer);
+        video.addEventListener("ended", function () {
+          cancelAnimationFrame(timer);
+        });
 
-          // 使用requestAnimationFrame确保音频采样率与系统时间同步
-          requestAnimationFrame(function update() {
-            analyser.getByteFrequencyData(buffer);
-            // 使用傅里叶变换获取频率数据后，可以处理每个频率值
-            for (let i = 0; i < bufferLength; i++) {
-              console.log(i, buffer[i]);
-            }
-            // 每一帧更新时都会调用update方法，因此可以在此继续处理其他音频数据
-            // requestAnimationFrame(update);
-          });
+        video.addEventListener("pause", function () {
+          cancelAnimationFrame(timer);
         });
       }
     </script>

@@ -132,6 +132,10 @@
       }
 
       {
+        const videoElement = document.createElement("video");
+        videoElement.src = "./media/202107.mp4";
+        videoElement.crossOrigin = "anonymous";
+
         const audioElement = new Audio("./media/202107.mp4");
         audioElement.crossOrigin = "anonymous"; // cross-origin - if file is stored on remote server
 
