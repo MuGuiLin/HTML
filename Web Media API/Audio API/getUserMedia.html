@@ -62,7 +62,7 @@
 
         ac.addEventListener("sinkchange", () => {
           // as.state = suspended：暂停、running：正在运行、closed：已关闭
-          
+
           if (typeof ac.sinkId === "object" && ac.sinkId.type === "none") {
             console.log("音频已更改为不在任何设备上播放！");
           } else {
@@ -145,7 +145,7 @@
         function getMediaSuccess2(stream) {
           // 创建一个新的MediaStreamAudioSourceNode 对象，使来自MediaStream的音频可以被播放和操作
           const mediaSource = ac.createMediaStreamSource(stream);
-          console.log(mediaSource)
+          console.log(mediaSource);
 
           // 创建一个用于通过JavaScript直接处理音频
           const scriptProcessor = ac.createScriptProcessor(2048, 6, 6);
@@ -233,7 +233,7 @@
           }
 
           function animate() {
-            console.log(6)
+            console.log(6);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             analyser.getByteTimeDomainData(dataArray);
             let width = canvas.width / size;
@@ -280,6 +280,20 @@
           navigator.webkitGetUserMedia ||
           navigator.mozGetUserMedia ||
           navigator.msGetUserMedia;
+
+        /*
+        //简单兼容
+        let getUserMedia =
+          navigator.mediaDevices.getUserMedia || navigator.getUserMedia;
+        //获取麦克风，摄像头权限
+        getUserMedia({ audio: true, video: true }).then((stream) => {
+          let audioCtx = new AudioContext(),
+            //以流媒体作为音频源
+            source = audioCtx.createMediaStreamSource(stream);
+          //将音频源直接连接到输出设备
+          source.connect(audioCtx.destination);
+        });
+        */
         // if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         //   navigator.mediaDevices.getUserMedia({
         //       audio: true,

@@ -11,7 +11,7 @@
       body {
         padding: 100px;
       }
-      p{
+      p {
         font-size: 16px;
         line-height: 32px;
       }
@@ -19,7 +19,7 @@
         margin: 30px 0;
         width: 500px;
       }
-      select{
+      select {
         margin: 10px;
         padding: 10px;
         font-size: 16px;
@@ -39,31 +39,48 @@
     </h1>
     <hr />
     <p>
-      <a target="_block" href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API">基于 Web Audio API 实现音频可视化效果</a>
+      <a
+        target="_block"
+        href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API"
+        >基于 Web Audio API 实现音频可视化效果</a
+      >
       网页音频接口最有趣的特性之一它就是可以获取频率、波形和其他来自声源的数据，这些数据可以被用作音频可视化。
+      <!--
       <br>要获取频率数据，可使用 AnalyserNode.getByteFrequencyData() 或 AnalyserNode.getFloatFrequencyData() 方法。
       <br>要获取波形数据，可使用 AnalyserNode.getByteTimeDomainData() 或 AnalyserNode.getFloatTimeDomainData() 方法。
+      -->
     </p>
     <br />
 
     <input id="file" type="file" />
 
-    <audio mute controls loop>
-      <source src="./media/程欣-重来.mp3" type="audio/mp3" />
-      <source src="./media/hlbb.mp3" type="audio/mp3" />
-    </audio>
-
     <select id="select">
       <option value="getByteFrequencyData">getByteFrequencyData 频率</option>
       <option value="getFloatFrequencyData">getFloatFrequencyData 频率</option>
       <option value="getByteTimeDomainData">getByteTimeDomainData 波形</option>
-      <option value="getFloatTimeDomainData">getFloatTimeDomainData 波形</option>
-      <option value="getByteFrequencyData and getByteTimeDomainData">频率波形混合</option>
-    <select>
+      <option value="getFloatTimeDomainData">
+        getFloatTimeDomainData 波形
+      </option>
+      <option value="getByteFrequencyData and getByteTimeDomainData">
+        频率波形混合
+      </option>
+    </select>
 
-    <video mute controls loop width="560">
-      <source src="./media//202107.mp4" type="video/mp4" />
-    </video>
+    <br />
+    <br />
+
+    <div id="media">
+      <!--
+      <audio mute controls loop>
+        <source src="./media/程欣-重来.mp3" type="audio/mp3" />
+        <source src="./media/hlbb.mp3" type="audio/mp3" />
+      </audio>
+      -->
+      <video mute controls loop width="560">
+        <source src="./media/程欣-重来.mp3" type="audio/mp3" />
+        <source src="./media/202107.mp4" type="video/mp4" />
+      </video>
+    </div>
 
     <br />
     <br />
@@ -82,12 +99,12 @@
       const ac = new (window.AudioContext || window.webkitAudioContext)();
 
       // const audio = new Audio("./media/hlbb.mp3");
-      const audio = document.querySelector("audio");
-      // const audio = document.querySelector("video");
+      // const audio = document.querySelector("audio");
+      const audio = document.querySelector("video");
 
       // 声源对象
-      const source = ac.createMediaElementSource(audio);   // 从标签元素获取声源
-      // const source = ac.createMediaStreamSource(audio); // 从网络请求获取声源
+      const source = ac.createMediaElementSource(audio); // 从标签元素 获取声源
+      // const source = ac.createMediaStreamSource(audio); // 从麦克风、网络请求 获取声源
       // 分析器
       const analyser = ac.createAnalyser();
       // 将analyser分析器节点 连接到 source声源
@@ -172,7 +189,7 @@
       }
 
       let timer = null;
-      let types = 'getByteFrequencyData';
+      let types = "getByteFrequencyData";
       function animate() {
         /*
         getByteTimeDomainData // 一段时间内；用于“示波器”可视化数据展示等
@@ -188,27 +205,27 @@
           Y轴是每个频带的强度。
         */
 
-        switch(types){
-          case 'getByteFrequencyData':
+        switch (types) {
+          case "getByteFrequencyData":
             analyser.getByteFrequencyData(arrayBuffer);
             break;
 
-          case 'getFloatFrequencyData':
+          case "getFloatFrequencyData":
             // 给出了底部的图表(x轴是频率);
             analyser.getFloatFrequencyData(arrayBuffer2);
             break;
 
-          case 'getByteTimeDomainData':
+          case "getByteTimeDomainData":
             analyser.getByteTimeDomainData(arrayBuffer);
             break;
 
-          case 'getFloatTimeDomainData':
+          case "getFloatTimeDomainData":
             // 给出顶部的图表(x轴是时间)
             analyser.getFloatTimeDomainData(arrayBuffer2);
             break;
-            
+
           default:
-            analyser.getByteTimeDomainData(arrayBuffer); 
+            analyser.getByteTimeDomainData(arrayBuffer);
             analyser.getByteFrequencyData(arrayBuffer);
         }
 
@@ -217,11 +234,11 @@
         timer = requestAnimationFrame(animate);
       }
 
-      select.addEventListener("change", function(event) {
+      select.addEventListener("change", function (event) {
         types = this.value;
       });
 
-      audio.addEventListener("play", function(event) {
+      audio.addEventListener("play", function (event) {
         animate();
       });
 
@@ -231,6 +248,17 @@
 
       audio.addEventListener("pause", function (event) {
         cancelAnimationFrame(timer);
+      });
+
+      file.addEventListener("change", function () {
+        const file = this.files[0];
+        console.log(file);
+        if ("video/mp4".startsWith("video")) {
+          // video.src = window.URL.createObjectURL(file);
+          audio.src = window.URL.createObjectURL(file);
+        } else {
+          audio.src = window.URL.createObjectURL(file);
+        }
       });
     </script>
   </body>
