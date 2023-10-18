@@ -139,18 +139,18 @@
             // 提取方法2-1： createAnalyser() // 可以用来获取音频时间和频率数据，以及实现数据可视化。
       {
         const analyser = ac.createAnalyser();
-        audioSource.connect(analyser); // 注：要将analyser 连接到 audioSource 后analyser.getByteTimeDomainData(audioData)才能获取到音频信息
+        audioSource.connect(analyser); // 注：要将analyser 连接到 audioSource 后analyser.getByteTimeDomainData(arrayBuffer)才能获取到音频信息
         analyser.connect(ac.destination); //注：要将scriptProcessor 连接到 AudioContext 后才会触发 onaudioprocess
         console.log("analyser", analyser);
 
         // 注：对“AnalyserNode”执行“getByteTimeDomainData”：参数1的类型只能是“Uint8Array”。
         // analyser.fftSize = 4096;
-        // const audioData = new Uint16Array(analyser.fftSize);
+        // const arrayBuffer = new Uint16Array(analyser.fftSize);
 
         // analyser.fftSize = 2048; // 默认2048;
         analyser.fftSize = 1024; // 默认2048;
-        const audioData = new Uint8Array(analyser.fftSize);
-        console.log(audioData);
+        const arrayBuffer = new Uint8Array(analyser.fftSize);
+        console.log(arrayBuffer);
 
         const canvas = document.querySelector("#canvas");
         const ctx = canvas.getContext("2d");
@@ -158,7 +158,7 @@
 
         function animate() {
           // 用 requestAnimationFrame() 来反复获取时域数据;
-          analyser.getByteTimeDomainData(audioData);
+          analyser.getByteTimeDomainData(arrayBuffer);
 
           ctx.fillStyle = "rgb(222, 222, 222)";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -171,7 +171,7 @@
           const sliceWidth = (canvas.width * 1.0) / analyser.fftSize;
           let x = 0;
           for (let i = 0; i < analyser.fftSize; i++) {
-            const v = audioData[i] / 128.0;
+            const v = arrayBuffer[i] / 128.0;
             const y = (v * canvas.height) / 2;
             if (i === 0) {
               ctx.moveTo(x, y);

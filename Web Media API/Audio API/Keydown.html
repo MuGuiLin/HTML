@@ -64,6 +64,10 @@
       <button id="whiteNoiseBtn" style="font-size: 18px">
         Make white noise 点击发出白噪音
       </button>
+
+      <button id="whiteNoiseBtn2" style="font-size: 18px">
+        Make white noise 点击发出白噪音2
+      </button>
     </div>
 
     <script>
@@ -143,8 +147,39 @@
 
       {
         // 自发白噪音实例
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        const channels = 6;
+        //  以AudioContext的采样率创建一个空的两秒立体声缓冲区
+        const frameCount = ac.sampleRate * 2.0;
+
+        const myArrayBuffer = ac.createBuffer(
+          channels,
+          frameCount,
+          ac.sampleRate
+        );
 
         whiteNoiseBtn.onclick = function () {
+          //用白噪声填充缓冲区；
+          let nowBuffering = [];
+          //只是-1.0和1.0之间的随机值
+          for (let channel = 0; channel < channels; channel++) {
+            //这为我们提供了包含数据的实际ArrayBuffer
+            nowBuffering = myArrayBuffer.getChannelData(channel);
+            for (let i = 0; i < frameCount; i++) {
+              //Math.random（）在[0；1.0]中
+              //音频需要在[-1.0；1.0]中
+              nowBuffering[i] = Math.random() * 2 - 1;
+            }
+          }
+          console.log(myArrayBuffer.numberOfChannels);
+          console.log("白噪声填充缓冲区：", nowBuffering);
+        };
+      }
+
+      {
+        // 自发白噪音实例2
+        whiteNoiseBtn2.onclick = function () {
           let ac;
           function init() {
             ac = new (window.AudioContext || window.webkitAudioContext)();
