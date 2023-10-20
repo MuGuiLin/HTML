@@ -188,7 +188,7 @@
 
       const canvas1 = document.querySelector("#canvas1");
       const ctx1 = canvas1.getContext("2d");
-      function render1() {
+      function animate1() {
         const width = (canvas1.width * 1.0) / analyser.fftSize;
         ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
         ctx1.beginPath();
@@ -223,7 +223,7 @@
       grd.addColorStop(1, "#DDD");
       const rectWidth = 3;
       const rectHeight = 0;
-      function render2() {
+      function animate2() {
         ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
         ctx2.beginPath();
         for (let i = 0; i < rectSize; i++) {
@@ -242,7 +242,7 @@
       fillStyle.addColorStop(0, "#31EDF8");
       fillStyle.addColorStop(0.5, "#D620DB");
       fillStyle.addColorStop(1, "#A2F582");
-      function render3() {
+      function animate3() {
         const rectWidth = 4;
         const width = canvas3.width;
         const height = canvas3.height;
@@ -267,7 +267,7 @@
       linear.addColorStop(0.5, "yellow");
       linear.addColorStop(1, "green");
 
-      function render4() {
+      function animate4() {
         ctx4.clearRect(0, 0, canvas4.width, canvas4.height);
         let width = canvas4.width / rectSize;
         for (let i = 0; i < rectSize; i++) {
@@ -298,7 +298,7 @@
 
       let timer = null;
       let types = "";
-      function animate() {
+      function render() {
         /*
         getByteTimeDomainData // 一段时间内；用于“示波器”可视化数据展示等
           可用线状图来可视化TimeDomain数据，
@@ -337,11 +337,11 @@
             analyser.getByteFrequencyData(arrayBuffer);
         };
 
-        render1();
-        render2();
-        render3();
-        render4();
-        timer = requestAnimationFrame(animate);
+        animate1();
+        animate2();
+        animate3();
+        animate4();
+        timer = requestAnimationFrame(render);
       };
 
 
@@ -386,7 +386,7 @@
       });
 
       audio.addEventListener("play", function (event) {
-        animate();
+        render();
       });
 
       audio.addEventListener("ended", function (event) {
