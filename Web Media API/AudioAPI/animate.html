@@ -1,312 +1,345 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Web Audio API examples: createAnalyser() and getByteTimeDomainData()
-    </title>
-    <style>
-      body {
-        padding: 50px 100px;
-      }
-      p {
-        font-size: 16px;
-        line-height: 32px;
-      }
-      audio {
-        margin: 30px 0;
-        width: 500px;
-      }
-      select {
-        margin: 10px;
-        padding: 10px;
-        font-size: 16px;
-      }
-      input[type="range"] {
-        /* transform: rotate(-90deg); */
-      }
-      #column {
-        width: 560px;
-      }
-      progress {
-        width: 1288px;
-      }
-    </style>
-  </head>
 
-  <body>
-    <h1>
-      Web Audio API examples: createAnalyser() and getByteTimeDomainData()
-    </h1>
-    <hr />
-    <p>
-      <a
-        target="_block"
-        href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API"
-        >基于 Web Audio API 实现音频可视化效果</a
-      >
-      网页音频接口最有趣的特性之一它就是可以获取频率、波形和其他来自声源的数据，这些数据可以被用作音频可视化。
-      <!--
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    Web Audio API examples: createAnalyser() and getByteTimeDomainData()
+  </title>
+  <style>
+    body {
+      padding: 50px 100px;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 32px;
+    }
+
+    audio {
+      margin: 30px 0;
+      width: 500px;
+    }
+
+    select {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    input[type="range"] {
+      /* transform: rotate(-90deg); */
+    }
+
+    #fftSize {
+      width: 500px;
+    }
+
+    #column {
+      width: 560px;
+    }
+
+    progress {
+      width: 1288px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>
+    Web Audio API examples: createAnalyser() and getByteTimeDomainData()
+  </h1>
+  <hr />
+  <p>
+    <a target="_block"
+      href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API">基于 Web
+      Audio API 实现音频可视化效果</a>
+    网页音频接口最有趣的特性之一它就是可以获取频率、波形和其他来自声源的数据，这些数据可以被用作音频可视化。
+    <!--
       <br>要获取频率数据，可使用 AnalyserNode.getByteFrequencyData() 或 AnalyserNode.getFloatFrequencyData() 方法。
       <br>要获取波形数据，可使用 AnalyserNode.getByteTimeDomainData() 或 AnalyserNode.getFloatTimeDomainData() 方法。
       -->
-    </p>
+  </p>
 
-    添加本地音视频：<input id="file" type="file" />
+  添加本地音视频：<input id="file" type="file" />
 
-    <select id="select">
-      <option value="">频率、波形 混合</option>
-      <option value="getByteFrequencyData">getByteFrequencyData 频率</option>
-      <option value="getFloatFrequencyData">getFloatFrequencyData 频率</option>
-      <option value="getByteTimeDomainData">getByteTimeDomainData 波形</option>
-      <option value="getFloatTimeDomainData">
-        getFloatTimeDomainData 波形
-      </option>
-    </select>
+  <select id="select">
+    <option value="">频率、波形 混合</option>
+    <option value="getByteFrequencyData">getByteFrequencyData 频率</option>
+    <option value="getFloatFrequencyData">getFloatFrequencyData 频率</option>
+    <option value="getByteTimeDomainData">getByteTimeDomainData 波形</option>
+    <option value="getFloatTimeDomainData">
+      getFloatTimeDomainData 波形
+    </option>
+  </select>
 
-    <select id="filter">
-      <option value="lowpass">lowpass - 低通滤波</option>
-      <option value="highpass">highpass - 高通滤波</option>
-      <option value="bandpass">bandpass - 带通滤波</option>
-      <option value="lowshelf">lowshelf - 低架滤波</option>
-      <option value="highshelf">highshelf - 高架滤波</option>
-      <option value="peaking">peaking - 峰值滤波</option>
-      <option value="notch">notch - 标准陷波滤波</option>
-      <option value="allpass">allpass - 标准二阶全通滤波</option>
-    </select>
+  <select id="filter">
+    <option value="lowpass">lowpass - 低通滤波</option>
+    <option value="highpass">highpass - 高通滤波</option>
+    <option value="bandpass">bandpass - 带通滤波</option>
+    <option value="lowshelf">lowshelf - 低架滤波</option>
+    <option value="highshelf">highshelf - 高架滤波</option>
+    <option value="peaking">peaking - 峰值滤波</option>
+    <option value="notch">notch - 标准陷波滤波</option>
+    <option value="allpass">allpass - 标准二阶全通滤波</option>
+  </select>
 
-    <br />
-    <br />
+  <br />
+  <br />
 
-    <div id="media">
-      <!--
+  <div id="media">
+    <!--
       <audio mute controls loop>
         <source src="./media/程欣-重来.mp3" type="audio/mp3" />
         <source src="./media/hlbb.mp3" type="audio/mp3" />
       </audio>
       -->
-      <video mute controls loop width="800">
-        <source src="./media/程欣-重来.mp3" type="audio/mp3" />
-        <source src="./media/202107.mp4" type="video/mp4" />
-      </video>
-    </div>
+    <video mute controls loop width="800">
+      <source src="./media/程欣-重来.mp3" type="audio/mp3" />
+      <source src="./media/202107.mp4" type="video/mp4" />
+    </video>
+  </div>
 
-    <br />
-    <br />
-    <br />
+  <br />
+  <br />
+  <br />
+  <h4>📊音频信号样本</h4>
+  🪟样本窗口大小：<input type="range" id="fftSize" value="6" min="0" max="10" /> <b id="fftSizeNum">2048</b>
+  <br />
+  <br />
+  <br />
 
-    <h4>响度</h4>
-    <progress max="100" value="0" id="progress"></progress>
+  <h4>🔊音频响度</h4>
+  <progress max="100" value="0" id="progress"></progress>
 
-    <h4>示波器波形效果：</h4>
-    <canvas width="1288" height="300" id="canvas1"></canvas>
+  <h4>♒示波器波形效果</h4>
+  <canvas width="1288" height="300" id="canvas1"></canvas>
 
-    <h4>频率条形图效果：</h4>
-    音柱数量：<input type="range" id="column" value="64" min="1" max="4096" /> <b id="columnNum">64</b>
-    <br />
-    <canvas width="1288" height="300" id="canvas2"></canvas>
+  <h4>📶频率条形图效果</h4>
+  🎚️条形音柱数量：<input type="range" id="column" value="64" min="1" step="1" max="4096" /> <b id="columnNum">64</b>
+  <br />
+  <canvas width="1288" height="300" id="canvas2"></canvas>
 
-    <script>
+  <script>
+    ; (function (global, factory) {
+      'use strict';
       let isInit = true;
-      function init() {
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-
-        // const audio = new Audio("./media/hlbb.mp3");
-        // const audio = document.querySelector("audio");
-        const audio = document.querySelector("video");
-
-        // 声源对象
-        const source = ac.createMediaElementSource(audio); // 从标签元素 获取声源
-        // const source = ac.createMediaStreamSource(audio); // 从麦克风、网络请求 获取声源
-
-        // 分析器
-        const analyser = ac.createAnalyser();
-
-        // 滤波器
-        const filterNode = ac.createBiquadFilter("lowpass");
-
-        // 将analyser分析器节点 连接到 source声源
-        source.connect(analyser);
-        analyser.connect(ac.destination);
-
-        // 将filterNode分析器节点 连接到 source声源
-        source.connect(filterNode);
-        filterNode.connect(ac.destination);
-        
-        /*
-        analyser.fftSize 属性用于表音频信号样本的窗口大小，它的属性值是无符号长整型，并且值该必须是从 32 到 32768 范围内（默认为2048）的 2 的非零幂（如不是 2 的幂，或者它在指定范围之外，则抛出异常 INDEX_SIZE_ERR.）; 
-        */
-        // analyser.fftSize = 4096;
-        // analyser.fftSize = 2048; // analyser.fftSize 默认(2048)
-        // analyser.fftSize = 1024; // analyser.frequencyBinCount 默认(1024) 
-        // analyser.fftSize = 512;
-        // analyser.fftSize = 256;
-
-        const arrayBuffer = new Uint8Array(analyser.fftSize);
-        const arrayBuffer2 = new Float32Array(analyser.fftSize);
-
-        const canvas1 = document.querySelector("#canvas1");
-        const ctx1 = canvas1.getContext("2d");
-        function draw1() {
-          ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
-          ctx1.beginPath();
-          ctx1.lineWidth = 2;
-          ctx1.strokeStyle = "blue";
-          const width = (canvas1.width * 1.0) / analyser.fftSize;
-          let x = 0;
-          for (let i = 0; i < analyser.fftSize; i++) {
-            const v = arrayBuffer[i] / 128.0;
-            const y = (v * canvas1.height) / 2;
-            if (0 === i) {
-              ctx1.moveTo(x, y);
-            } else {
-              ctx1.lineTo(x, y);
-            }
-            x += width;
-
-            progress.value = v * 10;
-          }
-          ctx1.stroke();
-          ctx1.strokeStyle = "#000";
-          ctx1.lineWidth = 0.5;
-          ctx1.beginPath();
-          ctx1.moveTo(0, canvas1.height / 2);
-          ctx1.lineTo(canvas1.width, canvas1.height / 2);
-          ctx1.stroke();
-        }
-
-        const canvas2 = document.querySelector("#canvas2");
-        const ctx2 = canvas2.getContext("2d");
-        let rectSize = 64; // 音柱数量
-        let rectArray = [];
-        for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
-        
-        function draw2() {
-          ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-          let width = canvas2.width / rectSize;
-          for (let i = 0; i < rectSize; i++) {
-            const height = arrayBuffer[i];
-            const y = canvas2.height - height;
-            const x = i * width + canvas2.width / 2;
-            const x2 = canvas2.width / 2 - (i + 1) * width;
-
-            const linear = ctx2.createLinearGradient(0, 100, 0, canvas2.height);
-            linear.addColorStop(0, "red");
-            linear.addColorStop(0.5, "yellow");
-            linear.addColorStop(1, "green");
-
-            ctx2.fillStyle = linear;
-            ctx2.fillRect(x, y, width - 5, height);
-            ctx2.fillRect(x2, y, width - 5, height);
-
-            const o = rectArray[i];
-            ctx2.fillStyle = "blue";
-            ctx2.fillRect(x, canvas2.height - (o.top + 12), width - 5, 8);
-            ctx2.fillRect(x2, canvas2.height - (o.top + 12), width - 5, 8);
-
-            o.top -= 3;
-            if (o.top < 0) {
-              o.top = 0;
-            }
-            if (height > 0 && o.top < height) {
-              o.top = height;
-            }
-          }
-        }
-
-        column.oninput = function () {
-          rectSize = this.value;
-          columnNum.innerText = this.value;
-          rectArray = [];
-          for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
-        };
-
-        let timer = null;
-        let types = "";
-        function animate() {
-          /*
-        getByteTimeDomainData // 一段时间内；用于“示波器”可视化数据展示等
-          可用线状图来可视化TimeDomain数据，
-          其中x轴(也就是“原域”)是时间。
-          Y轴是一个信号的量度(也就是“振幅”)。
-        */
-
-          /*
-        getByteFrequencyData // 一个时间点；用于“均衡器”可视化数据展示等
-          可用条形图来可视化频率数据。
-          其中x轴(又称“域”)是频率或频带。
-          Y轴是每个频带的强度。
-        */
-          // 反复收集当前音频的时域数据
-          switch (types) {
-            case "getByteFrequencyData":
-              analyser.getByteFrequencyData(arrayBuffer);
-              break;
-
-            case "getFloatFrequencyData":
-              // 给出了底部的图表(x轴是频率);
-              analyser.getFloatFrequencyData(arrayBuffer2);
-              break;
-
-            case "getByteTimeDomainData":
-              analyser.getByteTimeDomainData(arrayBuffer);
-              break;
-
-            case "getFloatTimeDomainData":
-              // 给出顶部的图表(x轴是时间)
-              analyser.getFloatTimeDomainData(arrayBuffer2);
-              break;
-
-            default:
-              analyser.getByteTimeDomainData(arrayBuffer);
-              analyser.getByteFrequencyData(arrayBuffer);
-          }
-
-          draw1();
-          draw2();
-          timer = requestAnimationFrame(animate);
-        }
-
-        select.addEventListener("change", function (event) {
-          types = this.value;
-        });
-
-        filter.addEventListener("change", function () {
-          filterNode.type = this.value;
-        });
-
-        audio.addEventListener("play", function (event) {
-          animate();
-        });
-
-        audio.addEventListener("ended", function (event) {
-          cancelAnimationFrame(timer);
-        });
-
-        audio.addEventListener("pause", function (event) {
-          cancelAnimationFrame(timer);
-        });
-
-        file.addEventListener("change", function () {
-          const file = this.files[0];
-          if ("video/mp4".startsWith("video")) {
-            // video.src = window.URL.createObjectURL(file);
-            audio.src = window.URL.createObjectURL(file);
-          } else {
-            audio.src = window.URL.createObjectURL(file);
-          }
-        });
-      }
-
       document.onclick = function () {
         if (isInit) {
           isInit = false;
-          init();
+          factory(global);
           document.onclick = null;
         }
       };
-    </script>
-  </body>
+    }(globalThis, function () {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+      // const audio = new Audio("./media/hlbb.mp3");
+      // const audio = document.querySelector("audio");
+      const audio = document.querySelector("video");
+
+      // 音源对象
+      const source = ac.createMediaElementSource(audio); // 从标签元素 获取声源
+      // const source = ac.createMediaStreamSource(audio); // 从麦克风、网络请求 获取声源
+
+      // 分析器
+      const analyser = ac.createAnalyser();
+
+      // 滤波器
+      const filterNode = ac.createBiquadFilter("lowpass");
+
+      // 将analyser分析器节点 连接到 source音源对象
+      source.connect(analyser);
+      analyser.connect(ac.destination);
+
+      // 将filterNode分析器节点 连接到 source音源对象
+      source.connect(filterNode);
+      filterNode.connect(ac.destination);
+
+      /*
+      analyser.fftSize 属性用于表音频信号样本的窗口大小，它的属性值是无符号长整型，并且值该必须是从 32 到 32768 【2^15】范围内（默认为2048）的 2 的非零幂【1，2，4，8，16， 32……】（如不是 2 的幂，或者它在指定范围之外，则抛出异常 INDEX_SIZE_ERR.）; 
+      */
+      // analyser.fftSize = 4096;
+      // analyser.fftSize = 2048; // analyser.fftSize 默认(2048)
+      // analyser.fftSize = 1024; // analyser.frequencyBinCount 默认(1024) 
+      // analyser.fftSize = 512;
+      // analyser.fftSize = 256;
+
+      let arrayBuffer = new Uint8Array(analyser.fftSize);
+      let arrayBuffer2 = new Float32Array(analyser.fftSize);
+
+      const canvas1 = document.querySelector("#canvas1");
+      const ctx1 = canvas1.getContext("2d");
+      function draw1() {
+        ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+        ctx1.beginPath();
+        ctx1.lineWidth = 2;
+        ctx1.strokeStyle = "blue";
+        const width = (canvas1.width * 1.0) / analyser.fftSize;
+        let x = 0;
+        for (let i = 0; i < analyser.fftSize; i++) {
+          const v = arrayBuffer[i] / 128.0;
+          const y = (v * canvas1.height) / 2;
+          if (0 === i) {
+            ctx1.moveTo(x, y);
+          } else {
+            ctx1.lineTo(x, y);
+          }
+          x += width;
+
+          progress.value = v * 10;
+        }
+        ctx1.stroke();
+        ctx1.strokeStyle = "#000";
+        ctx1.lineWidth = 0.5;
+        ctx1.beginPath();
+        ctx1.moveTo(0, canvas1.height / 2);
+        ctx1.lineTo(canvas1.width, canvas1.height / 2);
+        ctx1.stroke();
+      }
+
+      const canvas2 = document.querySelector("#canvas2");
+      const ctx2 = canvas2.getContext("2d");
+      let rectSize = 64; // 音柱数量
+      let rectArray = [];
+      for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
+
+      function draw2() {
+        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+        let width = canvas2.width / rectSize;
+        for (let i = 0; i < rectSize; i++) {
+          const height = arrayBuffer[i];
+          const y = canvas2.height - height;
+          const x = i * width + canvas2.width / 2;
+          const x2 = canvas2.width / 2 - (i + 1) * width;
+
+          const linear = ctx2.createLinearGradient(0, 100, 0, canvas2.height);
+          linear.addColorStop(0, "red");
+          linear.addColorStop(0.5, "yellow");
+          linear.addColorStop(1, "green");
+
+          ctx2.fillStyle = linear;
+          ctx2.fillRect(x, y, width - 5, height);
+          ctx2.fillRect(x2, y, width - 5, height);
+
+          const o = rectArray[i];
+          ctx2.fillStyle = "blue";
+          ctx2.fillRect(x, canvas2.height - (o.top + 12), width - 5, 8);
+          ctx2.fillRect(x2, canvas2.height - (o.top + 12), width - 5, 8);
+
+          o.top -= 3;
+          if (o.top < 0) {
+            o.top = 0;
+          }
+          if (height > 0 && o.top < height) {
+            o.top = height;
+          }
+        }
+      }
+
+      const fftSizeArray = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+      fftSize.oninput = function () {
+        // for (let i = 0; 32768; i++) {
+        //   if (i > 32768) return;
+        //   if (0 < i && 0 === (i & (i - 1))) {
+        //     console.log(i);
+        //   }
+        // }
+        console.log(this.value);
+        analyser.fftSize = fftSizeArray[this.value];
+        fftSizeNum.innerText = fftSizeArray[this.value];
+        arrayBuffer = new Uint8Array(analyser.fftSize);
+        arrayBuffer2 = new Float32Array(analyser.fftSize);
+      }
+
+
+      column.oninput = function () {
+        rectSize = this.value;
+        columnNum.innerText = this.value;
+        rectArray = [];
+        for (let i = 0; i < rectSize; i++) rectArray.push({ top: 0 });
+      };
+
+      let timer = null;
+      let types = "";
+      function animate() {
+        /*
+      getByteTimeDomainData // 一段时间内；用于“示波器”可视化数据展示等
+        可用线状图来可视化TimeDomain数据，
+        其中x轴(也就是“原域”)是时间。
+        Y轴是一个信号的量度(也就是“振幅”)。
+      */
+
+        /*
+      getByteFrequencyData // 一个时间点；用于“均衡器”可视化数据展示等
+        可用条形图来可视化频率数据。
+        其中x轴(又称“域”)是频率或频带。
+        Y轴是每个频带的强度。
+      */
+        // 反复收集当前音频的时域数据
+        switch (types) {
+          case "getByteFrequencyData":
+            analyser.getByteFrequencyData(arrayBuffer);
+            break;
+
+          case "getFloatFrequencyData":
+            // 给出了底部的图表(x轴是频率);
+            analyser.getFloatFrequencyData(arrayBuffer2);
+            break;
+
+          case "getByteTimeDomainData":
+            analyser.getByteTimeDomainData(arrayBuffer);
+            break;
+
+          case "getFloatTimeDomainData":
+            // 给出顶部的图表(x轴是时间)
+            analyser.getFloatTimeDomainData(arrayBuffer2);
+            break;
+
+          default:
+            analyser.getByteTimeDomainData(arrayBuffer);
+            analyser.getByteFrequencyData(arrayBuffer);
+        };
+
+        draw1();
+        draw2();
+        timer = requestAnimationFrame(animate);
+      };
+
+      select.addEventListener("change", function (event) {
+        types = this.value;
+      });
+
+      filter.addEventListener("change", function () {
+        filterNode.type = this.value;
+      });
+
+      audio.addEventListener("play", function (event) {
+        animate();
+      });
+
+      audio.addEventListener("ended", function (event) {
+        cancelAnimationFrame(timer);
+      });
+
+      audio.addEventListener("pause", function (event) {
+        cancelAnimationFrame(timer);
+      });
+
+      file.addEventListener("change", function () {
+        const file = this.files[0];
+        if ("video/mp4".startsWith("video")) {
+          // video.src = window.URL.createObjectURL(file);
+          audio.src = window.URL.createObjectURL(file);
+        } else {
+          audio.src = window.URL.createObjectURL(file);
+        }
+      });
+
+    }));
+  </script>
+</body>
+
 </html>
