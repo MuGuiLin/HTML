@@ -134,10 +134,13 @@
         // 将filterNode分析器节点 连接到 source声源
         source.connect(filterNode);
         filterNode.connect(ac.destination);
-
+        
+        /*
+        analyser.fftSize 属性用于表音频信号样本的窗口大小，它的属性值是无符号长整型，并且值该必须是从 32 到 32768 范围内（默认为2048）的 2 的非零幂（如不是 2 的幂，或者它在指定范围之外，则抛出异常 INDEX_SIZE_ERR.）; 
+        */
         // analyser.fftSize = 4096;
-        // analyser.fftSize = 2048; // 默认 analyser.fftSize
-        // analyser.fftSize = 1024; // 默认 analyser.frequencyBinCount
+        // analyser.fftSize = 2048; // analyser.fftSize 默认(2048)
+        // analyser.fftSize = 1024; // analyser.frequencyBinCount 默认(1024) 
         // analyser.fftSize = 512;
         // analyser.fftSize = 256;
 
@@ -156,7 +159,7 @@
           for (let i = 0; i < analyser.fftSize; i++) {
             const v = arrayBuffer[i] / 128.0;
             const y = (v * canvas1.height) / 2;
-            if (i === 0) {
+            if (0 === i) {
               ctx1.moveTo(x, y);
             } else {
               ctx1.lineTo(x, y);
@@ -236,7 +239,7 @@
           其中x轴(又称“域”)是频率或频带。
           Y轴是每个频带的强度。
         */
-
+          // 反复收集当前音频的时域数据
           switch (types) {
             case "getByteFrequencyData":
               analyser.getByteFrequencyData(arrayBuffer);
