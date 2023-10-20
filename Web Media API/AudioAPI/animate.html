@@ -124,7 +124,7 @@
   <br />
 
   <h4>📶频率条形图效果</h4>
-  🎚️条形音柱数量：<input type="range" id="column" value="80" min="1" step="1" max="4096" /> <b id="columnNum">80</b>
+  🎚️条形音柱数量：<input type="range" id="column" value="86" min="1" step="1" max="4096" /> <b id="columnNum">86</b>
   <br />
   <h5>条形效果1：</h5>
   <canvas width="1288" height="300" id="canvas2"></canvas>
@@ -184,7 +184,8 @@
       let arrayBuffer = new Uint8Array(analyser.fftSize);
       let arrayBuffer2 = new Float32Array(analyser.fftSize);
 
-      let rectSize = 80; // 音柱数量
+      let rectSize = 86; // 音柱数量
+
       const canvas1 = document.querySelector("#canvas1");
       const ctx1 = canvas1.getContext("2d");
       function render1() {
