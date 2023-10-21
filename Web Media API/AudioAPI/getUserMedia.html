@@ -57,8 +57,17 @@
     >
 
     <script>
-      let isInit = true;
-      function init() {
+      ;(function (global, factory) {
+        "use strict";
+        let isInit = true;
+        document.onclick = function () {
+          if (isInit) {
+            isInit = false;
+            factory(global);
+            document.onclick = null;
+          }
+        };
+      })(globalThis, function () {
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
         ac.addEventListener("sinkchange", () => {
@@ -336,14 +345,7 @@
           }
           ac && ac.close();
         }
-      }
-      document.onclick = function () {
-        if (isInit) {
-          isInit = false;
-          init();
-          document.onclick = null;
-        }
-      };
+      });
 
       {
         class SoundMeter {
