@@ -47,30 +47,41 @@
     <audio src="./media/hlbb.mp3" id="audio" controls></audio>
     
     <script>
+    ; (function (global, factory) {
+      'use strict';
+      let isInit = true;
+      document.onclick = function () {
+        if (isInit) {
+          isInit = false;
+          factory(global);
+          document.onclick = null;
+        }
+      };
+    }(globalThis, function () {
       let ac = null;
       try {
         ac = new (window.AudioContext || window.webkitAudioContext)();
       } catch (e) {
         alert("请更新至最新版的 Chrome 或者 Firefox");
       }
-      {
-        const source = ac.createMediaElementSource(audio);
+      const audio = document.querySelector('#audio');
+      const source = ac.createMediaElementSource(audio);
 
-        // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷） // http://web.h3399.cn/BiquadFilterNode.htm
-        const filter = ac.createBiquadFilter("lowpass");
+      // 低通滤波节点（高频信号被过滤，听到的声音会很沉闷） // http://web.h3399.cn/BiquadFilterNode.htm
+      const filter = ac.createBiquadFilter("lowpass");
 
-        filter.Q.value = 1; // 峰值滤波器的带宽
-        filter.frequency.value = 1000; // 中心频率
-        filter.gain.value = 5; // 增益，单位db
+      filter.Q.value = 1; // 峰值滤波器的带宽
+      filter.frequency.value = 1000; // 中心频率
+      filter.gain.value = 5; // 增益，单位db
 
-        source.connect(filter);
-        filter.connect(ac.destination);
+      source.connect(filter);
+      filter.connect(ac.destination);
 
-        select.addEventListener("change", function () {
-          filter.type = this.value;
-          console.log("createBiquadFilter 过滤器：", filter);
-        });
-      }
+      select.addEventListener("change", function () {
+        filter.type = this.value;
+        console.log("createBiquadFilter 过滤器：", filter);
+      });
+    }));
     </script>
   </body>
 </html>
