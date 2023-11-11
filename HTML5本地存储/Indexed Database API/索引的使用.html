@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>IndexedDB索引的使用</title>
+		<script type="text/javascript" src="js.js"></script>
+	</head>
+
+	<body>
+		<div>
+			<label>姓名：<input type="text"name="name"value=""style="width:50px;height:15px;"/></label>
+			<label>邮箱：<input type="text"name="email"value=""style="width:80px;height:15px;"/></label>
+			<button type="button">查询</button>
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>姓名</th>
+					<th>性别</th>
+					<th>年龄</th>
+					<th>邮箱</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="5">
+						<label style="font-size:14px"><input type="checkbox"name="checkAll"/>全选</label>
+						<input type="button" name="delete" value="删除选中" />
+						<input type="button" name="clear" value="清空数据库" />
+						<input type="button" id="DeleteDataBaes" value="删除数据库" />
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</body>
+	<script type="text/javascript">
+		document.getElementById('DeleteDataBaes').onclick = function()
+	    {	
+	    	alert("OK");
+	    	indexedDB.deleteDatabase("mydb");
+	    };
+	</script>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>indexedDB</title>
+		<style type="text/css">
+			h1{text-align: center;}
+			#mainBox{width: 1024px; margin: auto;}
+			pre{font-size: 16px;}
+			table{ width: 100%; border-collapse: collapse; border: 1px solid grey;}
+			table th, table td{ height: 60px; border: 1px solid gray; text-align: center;}
+			[type=text],[type=number],[type=tel],[type=password]{width: 90%; height: 36px;}
+			[type=button],[type=reset]{padding: 10px 40px;}
+		</style>
+	</head>
+	<body>
+		<h1>indexedDB本地存储</h1><hr />
+		<div id="mainBox">
+			<pre>
+			什么是【本地存储】，就是把一些数据存储到本地浏览器中，当与网络断开时，可以从本地浏览器中读取数据，用来做一些离线应用。 
+
+			IndexedDB的技术特点：不需要你去写特定的sql语句来对数据进行操作，它是nosql的，数据形式使用的是json。 
+
+			在来构建数据库。IndexedDB 使用对象存储空间而不是表，并且一个单独的数据库可以包含任意数量的对象存储空间。
+			每当一个值被存储进一个对象存储空间时，它会被和一个键相关联。
+			键的提供可以有几种不同的方法，这取决于对象存储空间是使用 key path 还是 key generator。
+			</pre>
+			
+			<h2>设置添加数据</h2><hr />
+			<table>
+				<form>
+				<tbody>
+					<tr>
+						<td>用户名：</td>
+						<td><input type="text" id="name" /></td>
+						<td>密 码：</td>
+						<td><input type="password" id="pwd" /></td>
+					</tr>
+					<tr>
+						<td>性 别：</td>
+						<td><input type="radio" name="sex" checked value="先 生" />先 生&nbsp; <input type="radio" name="sex" value="女 士" />女 士&nbsp; <input type="radio" name="sex"  value="保 密" />保 密 </td>
+						<td>头 像：</td>
+						<td><input type="file" id="file" /> </td>
+					</tr>
+					<tr>
+						<td>年 龄：</td>
+						<td><input  type="number" id="age" /></td>
+						<td>手 机：</td>
+						<td><input type="tel" id="mobile" /></td>
+					</tr>
+					<tr>
+						<td colspan="4"> <input type="button" id="AddDataBtn" value="添加数据" /> <input type="reset" value="重新填写" /> <input type="button" id="SelectBtn" value="读取数据" /> <input type="button" id="DeleteDataBaes" value="删除数据库" /></td>
+					</tr>
+				</tbody>
+				</form>
+			</table>
+			
+			<h2>删除数据</h2><hr />
+			
+			<h2>读取查看数据</h2><hr />
+			<table border="1" cellspacing="0" cellpadding="0">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>选 择</th>
+						<th>姓 名</th>
+						<th>密 码</th>
+						<th>性 别</th>
+						<th>年 龄</th>
+						<th>头 像</th>
+						<th>手 机</th>
+					</tr>
+				</thead>
+				
+				<tbody id="tbody"></tbody>
+				
+			</table>
+		</div>
+	</body>
+	<script src="jquery-2.2.0.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		window.onload = function()
+		{
+			const DB_NAME = 'MyDataBaes';
+		  	const DB_VERSION = 1; // 使用一个长的长的这个值（不使用浮动）
+		  	const DB_KEYNAME = 'mupiao';
+			
+			document.getElementById('SelectBtn').onclick = function()
+			{
+				SelectData(event);
+			}
+			
+			document.getElementById('DeleteDataBaes').onclick = function()
+			{
+				indexedDB.deleteDatabase(DB_NAME);  
+				alert("数据库删除成功!");
+				return false;
+			}
+			
+			var indexedDataBase = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+			if(!indexedDataBase)
+			{
+				alert("对不起：你的浏览器不支持indexedDB本地存储！");
+				return false;
+			}
+			
+			//IndexedDB 对象只有一个单一方法，open()，    数据库名        版本号：只能是整数(如果你增加数据库版本号时，会触发onupgradeneeded事件，这时可能会出现成功、失败、阻止事件三种情况。)
+			var openRequest = indexedDataBase.open(DB_NAME , DB_VERSION); //如果该数据库不存在，则会被创建；如果已经存在，则被打开。
+			var db;
+			openRequest.onerror = function(event)
+			{
+				alert("数据库初始化【创建 /打开】失败!");
+				console.log("数据库初始化【创建 /打开】失败!", event);
+			}
+	
+			/*
+			 * onupgradeneeded事件是我们唯一可以修改数据库结构的地方。在这里面，我们可以创建和删除对象存储空间以及构建和删除索引。
+			 * onupgradeneeded事件在第一次打开页面初始化数据库时会被调用，或在当有版本号变化时。
+			 * 所以，你应该在onupgradeneeded函数里创建你的存储数据。
+			 * 如果没有版本号变化，而且页面之前被打开过，你会获得一个onsuccess事件。
+			 * 如果有错误发生时则触发onerror事件。如果你之前没有关闭连接，则会触发onblocked事件。
+			 */
+			
+			openRequest.onupgradeneeded = function(event)
+			{	
+				db = event.target.result;
+								   //createObjectStore创建存储对象:DB_KEYNAME
+				var Store = db.createObjectStore(DB_KEYNAME , {keyPath:"ID" , autoIncrement:true });//将"ID" 作为我们的 key path 因为它保证是唯一的。autoIncrement:true//自动递增
+				//	Store.createIndex('name','name',{unique : true});//创建索引，就是以数据的快速查询为目的。unique : false不能重复，unique : true可以重复
+			}
+			
+			openRequest.onsuccess = function(event)
+			{
+				alert('数据库初始化【创建 /打开】成功!');
+				console.log("数据库初始化【创建 /打开】成功!", event);
+
+				db = event.target.result;
+			}
+			
+			//往ObjectStore对象里新增数据，我们首先需要创建一个事务，并要求具有读写权限。在indexedDB里任何的存取对象的操作都需要放在事务里执行。
+			document.getElementById('AddDataBtn').onclick = function(event)
+			{
+				
+				if(!db)
+				{
+					alert("数据库未初始化!");
+			      	return false;
+				}
+				
+				var name = document.getElementById('name').value;
+				var pwd = document.getElementById('pwd').value;
+				var age = document.getElementById('age').value;
+				var mobile = document.getElementById('mobile').value;
+				
+				var sex = document.getElementsByName('sex');
+				for(var i = 0; i < sex.length; i++)
+				{
+					if(sex[i].checked == true)
+					{
+						sex = sex[i].value;
+					}
+				}
+				
+				if(name == "" || pwd  == "" || age  == "" || mobile  == "" || sex  == "")
+				{
+					alert("请正确填写以上各项！");
+					return false;
+				}
+				
+				var init = {"name":name , "Password":pwd , "age":age , "sex":sex , "mobile":mobile}; //把数据放到数组Json中
+				
+				//alert(JSON.stringify(init));
+				
+				var transaction = db.transaction(DB_KEYNAME , "readwrite"); //引用上面创建的DB_KEYNAME数据存储对象，用于新增数据时要用事务，readwrite：读写权限。
+
+				transaction.oncomplete = function(event) 
+				{
+				    console.log("Success");
+				    alert('数据新增成功！', event);
+				    SelectData();
+				};
+				
+				transaction.onerror = function(event) 
+				{
+				    console.log("Error");
+				    alert('数据新增失败！', event);
+				};  
+				
+				var objectstore = transaction.objectStore(DB_KEYNAME); //指定数据存储对象。
+				objectstore.add(init); //向indexedDB插入数据。
+			}
+			
+			var SelectData = function()
+			{
+				if(!db)
+				{
+					alert("数据库未初始化!");
+			      	return false;
+				}
+				
+				$("#tbody").empty();
+
+			    var transaction = db.transaction(DB_KEYNAME , "readwrite");
+			    var objectstore = transaction.objectStore(DB_KEYNAME);
+			    var request = objectstore.count();
+  				
+			    request.onerror = function(event) 
+			    {
+			      	alert('获取数据失败!' , event);
+			    };
+				
+			  	request = objectstore.openCursor();
+			    
+			    request.onsuccess = function(event) 
+			    {
+			    	var cursor = event.target.result , tbody;
+					//alert(JSON.stringify(cursor.value));
+					
+		      		tbody += "<tr>";
+			        	tbody += "<td>"+ cursor.key +"</td>";
+			        	tbody += "<td><input type='checkbox' name='checkBox' value="+ 0 +"/></td>";
+			        	tbody += "<td>"+ cursor.value.name +"</td>";
+			        	tbody += "<td>"+ cursor.value.Password +"</td>";
+			        	tbody += "<td>"+ cursor.value.sex +"</td>";
+			        	tbody += "<td>"+ cursor.value.age +"</td>";
+			        	tbody += "<td><img src='img.png'/></td>";
+			        	tbody += "<td>"+ cursor.value.mobile +"</td>";
+			        tbody += "</tr>";
+			        
+			        $('#tbody').append(tbody);
+	        		cursor.continue(); //移动到存储下的下一个对象	 
+	        		
+			    };
+
+			}
+		}
+	</script>
+</html>

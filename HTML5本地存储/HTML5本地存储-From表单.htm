@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1"/>
+	<head>
+		<title>indexedDataBaes</title>
+	    <style type="text/css">
+	    	*{}
+	    	html,body{font-family: "微软雅黑";}
+	    	.clear{ clear: both;}
+	    	h1{text-align: center;}
+	    	.enter{ border: 1px solid darkgray; text-align: center; background: #FFFCF5; line-height: 50px; font-size: 18px;}
+	    	.enter_title{ float: left; width: 15%; height: 50px;  }
+	    	.enter_text{ float: left; width: 35%; height: 50px; }
+	    	[type=text],[type=password],[type=number],[type=date],[type=time],[type=week],[type=tel],[type=email],[type=search],[type=url],[type=color]{ width: 80%; height: 30px; }
+	    	[type=radio]{ width: 20px; height: 20px; text-align: left;}
+	    	#bodyBox{ width: 1024px; height: auto; margin: auto; background: mediumseagreen;}
+	        #head div{ width: 9.8%; height: 40px; border: 1px solid; line-height: 40px; background:none ; text-align: center; font-family: "微软雅黑"; font-size: larger;  float: left;}
+	        #content div div { width: 9.8%; text-align: center;  border: 1px solid; background-color: Aqua; float: left; }
+	    </style>
+	</head>
+	<body>
+		
+		<h1>indexedDB</h1><hr />
+		
+		<div id="bodyBox">
+			<div class="enter">
+				<form action="#" method="post">	
+					<div class="enter_title">用户姓名：</div>
+					<div class="enter_text"><input id="name" 	type="text"  placeholder="请输入姓名！"/></div>
+					<div class="enter_title">登录密码：</div>
+					<div class="enter_text"><input id="pwd"  	type="password" maxlength="16" placeholder="请输入密码！"/></div>
+					<div class="enter_title">性 别：</div>
+					<div class="enter_text"><input name="sex" 	type="radio" checked value="先生" />先 生&nbsp; <input name="sex" type="radio" value="女士" />女 士&nbsp; <input name="sex" type="radio" value="保密" />保 密&nbsp;</div>
+					<div class="enter_title">年 龄：</div>
+					<div class="enter_text"><input id="age" 	type="number" maxlength="3" placeholder="请输入年龄！"/></div>
+					<div class="enter_title">出生日期：</div>
+					<div class="enter_text"><input id="data" 	type="date" /></div>
+					<div class="enter_title">选择时间：</div>
+					<div class="enter_text"><input id="time" 	type="time" /></div>
+					<div class="enter_title">选择周期：</div>
+					<div class="enter_text"><input id="week" 	type="week"/></div>
+					<div class="enter_title">上传文件：</div>
+					<div class="enter_text"><input id="file" 	type="file"/></div>
+					<div class="enter_title">手机号码：</div>
+					<div class="enter_text"><input id="mobile" 	type="tel" maxlength="11"  placeholder="请输入手机号！"/></div>
+					<div class="enter_title">电子邮箱：</div>
+					<div class="enter_text"><input id="email" 	type="email"  placeholder="请输入邮箱！"/></div>
+					<div class="enter_title">滑块标签：</div>
+					<div class="enter_text"><input id="range" 	type="range" min="0" max="100"/></div>
+					<div class="enter_title">微信号：</div>
+					<div class="enter_text"><input id="wx" 		type="search"  placeholder="请输入微信！"/></div>
+					<div class="enter_title">QQ号：</div>
+					<div class="enter_text"><input id="qq" 		type="number" maxlength="16" placeholder="请输入QQ！"/></div>
+					<div class="enter_title">个人主页：</div>
+					<div class="enter_text">
+						<input id="url" list="url_list"			type="url"  placeholder="输入或选择网址！"/>
+						<datalist id="url_list">
+							<option label="百度搜索" value="http://www.baidu.com" ></option>
+							<option label="谷歌搜索" value="http://www.googel.com"></option>
+							<option label="青苹果影院" value="http://www.qpgyy.com"></option>
+						</datalist>
+					</div>
+					<div class="enter_title">幸运色：</div>
+					<div class="enter_text"><input id="color" 	type="color"/></div>
+					<div class="enter_title">居住地址：</div>
+					<div class="enter_text"><input id="address" type="search" maxlength="16" placeholder="请输入密码！"/></div>
+				</form>
+				<div class="clear"></div>
+			</div>
+		    <div id="btnBox">
+		    	<input type="button" name="addBtn" id="addBtn" accesskey="Enter" value="添 加" />
+		    	<input type="button" name="delBtn" id="delBtn" accesskey="Delete" value="删 除" />
+		    	<input type="button" name="deleteDB" id="deleteDB" value="删除数据库" />
+		    </div>
+		    <div id="head">
+		    	<div>ID</div>
+		        <div>姓 名</div>
+		        <div>密 码</div>
+		        <div>性 别</div>
+		        <div>年 龄</div>
+		        <div>手 机</div>
+		        <div>邮 箱</div>
+		        <div>微 信</div>
+		        <div>Q Q</div>
+		        <div>地 址</div>
+		    </div>
+		   
+		    <br />
+		    <div id="mainBox"></div>
+		    <div id="content"></div> 
+		    <div class="clear"> </div>
+		</div>
+	</body>
+	
+	<script>
+	
+	    var db , arrayKey = [] , openRequest , lastCursor;
+	    var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+	
+	    function init() 
+	    {
+		    openRequest = indexedDB.open("MyDagaBaes" , 1);
+			
+			openRequest.onerror = function () 
+			{
+	            alert("您的浏览器可能不支持IndexedDB要地存储，请换个浏览器再试！");
+	        };
+	        
+	        
+	        openRequest.onsuccess = function(e) 
+	        {
+				db = e.target.result;
+				db.onerror = function(event) 
+	            {
+				  alert("数据库错误: " + event);
+				  console.dir(event.target);
+				};
+				
+	            if(db.objectStoreNames.contains("person")) 
+	            {
+	                console.log("contains person");
+	                var transaction = db.transaction(["person"],"readwrite"); 
+	                transaction.onerror = function(event) 
+	                {
+				        // Don't forget to handle errors!
+				        console.dir(event);
+				    };
+				    transaction.oncomplete = function(event) 
+	                {
+		  			  //  console.log("All done!");
+				    };
+	                var content= document.querySelector("#content");
+				   
+	
+				    var objectStore = transaction.objectStore("person"); //得到person的objectStore对象
+	
+				    objectStore.openCursor().onsuccess = function(event) 
+	                {  
+				        var cursor = event.target.result;  
+
+	                    var HTML , flag = 0;
+				        if (cursor) 
+	                    {
+	                    	HTML += "<div>"+ cursor.value.name +"</div>";
+				  	        console.log(cursor.key);
+				  	        console.dir(cursor.value);
+	                        var div=document.createElement("div");
+	                        div.id=cursor.key;
+	                        var div1=document.createElement("div");
+	                        var div2=document.createElement("div");
+	                        var div3=document.createElement("div");
+	                        div1.innerHTML=cursor.value[flag]["name"];
+	                        div2.innerHTML=cursor.value[flag]["phone"];
+	                        div3.innerHTML=cursor.value[flag]["address"];
+	                        div.appendChild(div1);
+	                        div.appendChild(div2);
+	                        div.appendChild(div3);
+	                        content.appendChild(div);
+	                        arrayKey.push(cursor.key);
+	                        flag++;
+	                        lastCursor=cursor.key;
+	                        document.getElementById('mainBox');
+	                        cursor.continue();  
+				        }  
+				        else 
+	                    {  
+				  	        console.log("Done with cursor");
+				        }  
+				    }; 
+				        objectStore.openCursor().onerror=function(event){
+				        console.dir(event);
+				    };
+				}
+			};
+			
+			openRequest.onupgradeneeded = function(e) 
+	        {
+				var thisDb = e.target.result;
+				if(!thisDb.objectStoreNames.contains("person")) 
+	            {
+					var objectStore = thisDb.createObjectStore("person", { keyPath: "id", autoIncrement:true });  
+					objectStore.createIndex("name", 	"name", { unique: false });
+					objectStore.createIndex("pssword", 	"pssword", { unique: false });
+					objectStore.createIndex("sex", 		"sex", { unique: false });
+					objectStore.createIndex("age", 		"age", { unique: false });
+					objectStore.createIndex("data", 	"data", { unique: false });
+					objectStore.createIndex("time", 	"time", { unique: false });
+					objectStore.createIndex("week", 	"week", { unique: false });
+					objectStore.createIndex("file", 	"file", { unique: false });
+					objectStore.createIndex("mobile", 	"mobile", { unique: false });
+					objectStore.createIndex("email", 	"email", { unique: false });
+					objectStore.createIndex("range", 	"range", { unique: false });
+					objectStore.createIndex("wx", 		"wx", { unique: false });
+					objectStore.createIndex("qq", 		"qq", { unique: false });
+					objectStore.createIndex("url", 		"url", { unique: false });
+					objectStore.createIndex("color", 		"color", { unique: false });
+					objectStore.createIndex("address", 		"address", { unique: false });
+				}
+			}
+	
+			
+
+			document.querySelector("#addBtn").addEventListener("click", function() 
+	        {	 
+	        	var name = document.querySelector('#name').value;
+				var passwords = document.querySelector('#pwd').value;
+				var sexs;
+				var age = document.querySelector('#age').value;
+				var data = document.querySelector('#data').value;
+				var time = document.querySelector('#time').value;
+				var week = document.querySelector('#week').value;
+				var files = document.querySelector('#file').value;
+				var mobile = document.querySelector('#mobile').value;
+				var email = document.querySelector('#email').value;
+				var ranges = document.querySelector('#range').value;
+				var wx = document.querySelector('#wx').value;
+				var qq = document.querySelector('#qq').value;
+				var urls = document.querySelector('#url').value;
+				var color = document.querySelector('#color').value;
+				var address = document.querySelector('#address').value;
+				
+	            (function(){
+	            	var sex = document.getElementsByName('sex');
+		            for(var i = 0; i < sex.length; i++)
+		            {
+		            	if(sex[i].checked == true)
+		            	{
+		            		sexs = sex[i].value;
+		            	}
+		            }
+	            })();
+	           
+	            var person = [{"name":name , "password":passwords , "sexs":sexs , "age":age , "data":data , "time":time , "week":week ,  "files":files , "mobile":mobile , "email":email , "ranges":ranges , "wx":wx , "qq":qq , "urls":urls , "color":color , "address":address }];   
+				alert(JSON.stringify(person));
+	           
+	           	var transaction = db.transaction(["person"], "readwrite"); //往数据库里新增数据时要创建一个事务，并要求具有读写权限。
+		           	transaction.oncomplete = function(event) 
+		            {
+				       alert('数据新增成功！');
+			        };
+			        transaction.onerror = function(event) 
+		            {
+		            	alert('数据新增失败！');
+			        };
+	            var objectStore = transaction.objectStore("person"); //得到person的objectStore对象
+
+	          objectStore.openCursor().onsuccess = function(event) 
+	          {  
+			        cursor = event.target.result; 
+	              var key;
+	              if(lastCursor==null)
+	              {
+	                  key=cursor.key;
+	                  lastCursor=key;
+	              }
+	              else
+	              {
+	                  key=++lastCursor;
+	              }
+	              var content= document.querySelector("#content");
+	              var div=document.createElement("div");
+	              div.id=key
+	              var div1=document.createElement("div");
+	              var div2=document.createElement("div");
+	              var div3=document.createElement("div");
+	              div1.innerHTML=name;
+	              div2.innerHTML=phone;
+	              div3.innerHTML=address;
+	              div.appendChild(div1);
+	              div.appendChild(div2);
+	              div.appendChild(div3);
+	              content.appendChild(div);
+	              arrayKey.push(key);
+	              console.log("success add new record!key:"+key);
+	              console.dir(person);
+	          }
+			});
+			
+	        document.querySelector("#delBtn").addEventListener("click", function() 
+	        {
+	            if(arrayKey.length==0){ console.log("no data to delete!"); }
+	            else
+	            {
+	                var transaction = db.transaction(["person"], "readwrite"); 
+	                transaction.oncomplete = function(event) 
+	                {
+	  	        //		console.log("transaction complete!");
+			        };
+	
+			        transaction.onerror = function(event) 
+	                {
+			          console.dir(event);
+			        };
+	                var objectStore = transaction.objectStore("person"); //得到person的objectStore对象
+	                var removeKey=arrayKey.shift();
+	                var getRequest=objectStore.get(removeKey);
+	                getRequest.onsuccess=function(e)
+	                {
+	                    var result =getRequest.result;
+	                    console.dir(result);
+	                }
+	                var request=objectStore.delete(removeKey);
+	                request.onsuccess = function(e) 
+	                {
+	                  console.log("success delete record!");
+	                };
+	                request.onerror = function(e) 
+	                {
+	                  console.log("Error delete record:", e);
+	                };
+	                //隐藏要删除的元素
+	                document.getElementById(removeKey).style.display="none";
+	            }
+			});
+	
+
+	        document.querySelector("#deleteDB").addEventListener("click", function() 
+	        {  
+	        	alert("删除数据库！");
+	           	indexedDB.deleteDatabase(persons); 
+			});
+	    }
+	    
+	    window.addEventListener("DOMContentLoaded", init, false);
+    </script>
+</html>

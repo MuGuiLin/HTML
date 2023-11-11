@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>LocalStorage存图片</title>
+	</head>
+	
+	<style type="text/css">
+		html,body{margin: 0px; padding: 0px; font-family: "微软雅黑"}
+		div{ width:980px; height:200px; text-align: left; margin: auto;}
+	</style>
+	<body>
+		<center>
+			<h1>LocalStorage存图片</h1>
+			<hr />
+			
+			<input type="file" name="" id="imgfile" value="" />
+			<input type="button" name="but" id="but" value="保存数据" />
+			<input type="button" name="but" id="but2" value="读取数据" />
+			<input type="button" name="but" id="but3" value="清除数据" />
+		</center>
+	</body>
+	<script type="text/javascript">
+var src = 'img.png';
+		document.getElementById("but").onclick = function()
+		{
+			if(window.localStorage)//如果浏览器支持localStrage
+			{
+				
+				var img = document.createElement('img');
+				
+				//当图片加霜完成时触发回调函数
+				img.addEventListener('load' , function()
+				{
+					var imgCanvas = document.createElement('canvas');
+					imgContext = imgCanvas.getContext('2d');
+					
+					imgCanvas.width = this.width;
+					imgCanvas.height = this.height;
+					
+					//把图片渲染到canvas中
+					imgContext.drawImage(this , 0 , 0 , this.width , this.height);
+					
+					//用data url的形式取出 base64
+					var imgURL = imgCanvas.toDataURL('image/png');
+					
+					localStorage.setItem('mupiao' , 'imgURL');
+					img.src = src;
+				});
+				alert(src);
+			}
+			else
+			{
+				alert('对不起：该浏览器不支持localStorage(本地存储)功能！快升级浏览器吧！');
+			}
+		}
+		
+		document.getElementById("but2").onclick = function()
+		{
+			var src = localStorage.getItem('mupiao');
+			var img = document.createElement('img');
+			img.src = src;
+			document.body.appendChild(img);
+		}
+		
+		
+		document.getElementById("but3").onclick = function()
+		{		
+			localStorage.removeItem('mupiao');
+		}
+
+	</script>
+</html>

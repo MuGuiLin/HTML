@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>demoA</title>
+		<style type="text/css">
+			body { font-size: 1em; font-family:"微软雅黑"; background: #EEE;}
+			h1{text-align: center; }
+			#mainBox{ width: 1024px; height: 1024px; padding: 20px; margin: auto; background: white;}
+			form { width: 93.5%; background-color: #cccccc; border-radius: 0.3em; border: 1px solid #008000; display: inline-block; margin-bottom: 0.5em; padding: 2em;}
+			table { width: 100%;  background:ghostwhite; border-collapse: collapse; border: 1px solid grey;}
+			table td{border: 1px solid grey; height: 50px; text-align: center;}
+			table td img{ width: 100%;}
+			input {padding: 10px;}
+			[type=button],[type=reset]{padding: 10px 30px;}
+			.required:after {content: " * ";color: red;}
+			.button-pane {margin-top: 1em;}
+			.action-success { margin-left: 1em; padding: 0.5em; color: #00d21e; background-color: #eeeeee; border-radius: 0.2em;}
+			.action-failure { margin-left: 1em; padding: 0.5em; color: #ff1408; background-color: #eeeeee; border-radius: 0.2em;}
+			.presence-no { font-style: italic;}
+			.note { font-size: smaller;}
+		</style>
+	</head>
+
+	<body>
+		
+		<h1>IndexedDB的演示：</h1><hr />
+		
+		<div id="mainBox">
+			<form id="register-form">
+				<table>
+					<tbody>
+						<tr>
+							<td><label for="pub-title" class="required">订 单 号：</label></td>
+							<td><input type="text" id="OrderNum" /></td>
+						</tr>
+						<tr>
+							<td><label for="pub-year" class="required">订单金额：</label></td>
+							<td><input type="number" id="OrderRMB" /></td>
+						</tr>
+						<tr>
+							<td><label for="pub-biblioid" class="required">收 货 人：</label></td>
+							<td><input type="text" id="Receiver" /></td>
+						</tr>
+						<tr>
+							<td><label for="pub-biblioid" class="required">联系电话：</label></td>
+							<td><input type="text" id="PcMobile" /></td>
+						</tr>
+						<tr>
+							<td><label for="pub-biblioid" class="required">下单时间：</label></td>
+							<td><input type="text" id="OrderTime" /></td>
+						</tr>
+
+					</tbody>
+				</table>
+				
+				<br /><hr />
+				
+				<div class="button-pane">
+					<input type="button" id="add-button" value="发 布" />
+					<input type="reset" id="register-form-reset" />
+					<input type="button" id="add-button" onclick="window.location.href='demoB.html'" value="读 取" />
+				</div>
+			</form>
+
+		
+		</div>
+	</body>
+	
+	<script src="../jquery-2.2.0.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		(function ()
+		{
+		  	const DB_NAME = 'MupiaoDataBaes';
+		  	const DB_VERSION = 1; // 使用一个长的长的这个值（不使用浮动）
+		  	const DB_STORE_NAME = 'TableName';
+		
+		  	var db;
+			var indexedDataBase = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+	
+			if(!indexedDataBase)
+			{
+				alert("对不起：你的浏览器不支持本地存储！");
+			}
+	
+		
+			//初始化数据库
+		  	function InitDB() 
+		  	{
+			    var Req = indexedDataBase.open(DB_NAME, DB_VERSION);//打开或创建数据库
+			    
+			    Req.onsuccess = function (e) 
+			    {
+			      	db = this.result;
+			      	alert("数据库创建/打开成功");
+			    };
+			    
+			    Req.onerror = function (e)
+			    {
+			      	alert("数据库创建/打开失败：", e.target.errorCode);
+			    };
+		
+			    Req.onupgradeneeded = function (e) 
+			    {															//们将使用 "ssn" 作为我们的 key path 因为它保证是唯一的。
+			      	var store = e.currentTarget.result.createObjectStore(DB_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+			      	//store.createIndex('NonNmber', 'NonNmber', { unique: true }); //创建索引，就是以数据的快速查询为目的。unique : false不能重复，unique : true可以重复
+
+			    };
+		  	}
+		  	
+		  	
+		  	function addPublication(OrderNum , OrderRMB , Receiver , PcMobile , OrderTime) 
+		  	{
+			    console.debug("传过来的实参:", arguments);
+			    if (!db) 
+			    {
+			    	alert("添加发布：数据库未初始化");
+			      	return false;
+			    }
+			    
+			    var tx = db.transaction(DB_STORE_NAME, 'readwrite');
+			    var store = tx.objectStore(DB_STORE_NAME);
+			    var Req = store.add({ OrderNum:OrderNum , OrderRMB:OrderRMB , Receiver:Receiver , PcMobile:PcMobile , OrderTime:OrderTime});
+			    
+			    Req.onsuccess = function ()
+			    {
+			    	alert('数据插入成功!')
+			    };
+			    
+			    Req.onerror = function() 
+			    {
+			    	alert('数据插入失败!' + this.error)
+			    };
+		  	}
+		
+
+			
+			
+			function addEventListeners() 
+			{
+			    console.debug("addEventListeners");
+			    
+			    InitDB();//执行初始化函数
+	
+			    $('#add-button').click(function() 
+			    {
+			      	var OrderNum = $('#OrderNum').val();
+			      	var OrderRMB = $('#OrderRMB').val();
+			      	var Receiver = $('#Receiver').val();
+			      	var PcMobile = $('#PcMobile').val();
+			      	var OrderTime = $('#OrderTime').val();
+			      	
+			      	if(!OrderNum || !OrderRMB || !Receiver || !PcMobile || !OrderTime)
+			      	{
+			      		alert("请正确填写相关选项!");
+			      		return false;
+			      	}
+			      	addPublication(OrderNum , OrderRMB , Receiver , PcMobile , OrderTime);
+			    });
+
+			}
+	
+			addEventListeners();
+		})(); // 立即调用的函数表达式（IIFE）
+	
+	</script>
+</html>

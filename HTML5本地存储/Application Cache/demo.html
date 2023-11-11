@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" manifest="manifest.appcache">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<ul>
+			<li><img src="img/img1.png"/></li>
+		</ul>
+	</body>
+	<script type="text/javascript">
+		window.addEventListener('load' , function(e) //监听窗口加载完成时执行下面的监听函数
+		{
+			window.applicationCache.addEventListener('updateready' , function(e) //updateready 该事件表是检查内容是否有更新
+			{
+				alert(window.applicationCache.status);
+				
+				if(window.applicationCache.status == window.applicationCache.UPDATEREADY) //UPDATEREADY 是这更新状态
+				{
+					window.applicationCache.swapCache();//如果有更新，就重置（重新从服务器获取）更新内容
+					
+					if(confirm('当前有内容更新，您要更新吗?'))
+					{
+						window.location.reload();//如果点击确定就刷新，并加载新的内容
+					}
+				}
+				else
+				{
+					alert('manifest didn\'t change');
+				}
+			} , false);
+		} , false);
+	</script>
+</html>

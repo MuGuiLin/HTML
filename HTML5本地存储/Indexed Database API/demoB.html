@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>demoB</title>
+		<style type="text/css">
+			body { font-size: 1em; font-family:"微软雅黑"; background: #EEE;}
+			h1{text-align: center; }
+			#mainBox{ width: 1024px; height: 1024px; padding: 20px; margin: auto; background: white;}
+			form { width: 93.5%; background-color: #cccccc; border-radius: 0.3em; border: 1px solid #008000; display: inline-block; margin-bottom: 0.5em; padding: 2em;}
+			table { width: 100%;  background:ghostwhite; border-collapse: collapse; border: 1px solid grey;}
+			table td{border: 1px solid grey; height: 50px; text-align: center;}
+			table td img{ width: 100%;}
+			input {padding: 10px;}
+			[type=button],[type=reset]{padding: 10px 30px;}
+			.required:after {content: " * ";color: red;}
+			.button-pane {margin-top: 1em;}
+			.action-success { margin-left: 1em; padding: 0.5em; color: #00d21e; background-color: #eeeeee; border-radius: 0.2em;}
+			.action-failure { margin-left: 1em; padding: 0.5em; color: #ff1408; background-color: #eeeeee; border-radius: 0.2em;}
+			.presence-no { font-style: italic;}
+			.note { font-size: smaller;}
+		</style>
+	</head>
+
+	<body>
+		
+		<h1>IndexedDB的演示：</h1><hr />
+		
+		<div id="mainBox">
+
+			<form id="delete-form">
+					<label for="pub-biblioid-to-delete" class="required">删除记录[ID号]:</label>
+					<input type="text" id="pub-biblioid-to-delete" name="pub-biblioid-to-delete" />
+					<input type="button" id="delete-button" value="删 除" />
+					<input type="button" id="search-list-button" value="显示数据库内容" />
+					<input type="button" id="search-list-button" onclick="window.location.href='demoA.html'" value="返回添加" />
+			</form>
+	
+	
+			<table border="" cellspacing="" cellpadding="">
+				<thead>
+					<tr><th colspan="8" id="pub-msg"></th></tr>
+					<tr>
+						<td>ID</td>
+						<th>操作选择</th>
+	                    <th>序 号</th>
+	                    <th>订 单 号</th>
+	                    <th>订单金额</th>
+	                    <th>收 货 人</th>
+	                    <th>联系电话</th>
+	                    <th>下单时间</th>
+					</tr>
+				</thead>
+				<tbody id="tbody"></tbody>
+				
+			</table>
+		
+		</div>
+	</body>
+	
+	<script src="../jquery-2.2.0.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		(function ()
+		{
+		  	const DB_NAME = 'MupiaoDataBaes';
+		  	const DB_VERSION = 1; // 使用一个长的长的这个值（不使用浮动）
+		  	const DB_STORE_NAME = 'TableName';
+		
+		  	var db;
+			var indexedDataBase = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+	
+			if(!indexedDataBase)
+			{
+				alert("对不起：你的浏览器不支持本地存储！");
+			}
+	
+		
+			//初始化数据库
+		  	function InitDB() 
+		  	{
+			    var Req = indexedDataBase.open(DB_NAME, DB_VERSION);//打开或创建数据库
+			    
+			    Req.onsuccess = function (e) 
+			    {
+			      	db = this.result;
+			    };
+			    
+			    Req.onerror = function (e)
+			    {
+			      	alert("数据库创建/打开失败：", e.target.errorCode);
+			    };
+		
+			    Req.onupgradeneeded = function (e) 
+			    {															//们将使用 "ssn" 作为我们的 key path 因为它保证是唯一的。
+			      	var store = e.currentTarget.result.createObjectStore(DB_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+			 		//store.createIndex('NonNmber', 'NonNmber', { unique: true }); //创建索引，就是以数据的快速查询为目的。unique : true不能重复，unique : true可以重复
+			    };
+		  	}
+				  	
+			//获取存储的数据
+		  	function displayPubList() 
+		  	{
+			    
+			    $('#pub-msg').empty();
+				$('#tbody').empty();
+			    var tx = db.transaction(DB_STORE_NAME, 'readwrite');
+			    var store = tx.objectStore(DB_STORE_NAME);
+			    var Req = store.count();
+			    
+			    //请求在它们被反对作出的命令执行
+			    //交易，其结果是在相同的顺序返回。
+			    //下面这样的计数文本将实际的酒吧名单之前显示
+			    //（未它是在这种情况下，算法重要）。
+			
+			    Req.onsuccess = function(e) 
+			    {
+			      	$('#pub-msg').append('<p>IndexedDataBaes对象存储中有<strong>' + e.target.result +'</strong>条记录!</p>');
+			    };
+			    
+			    Req.onerror = function() 
+			    {
+			      	alert('获取数据失败:' + this.error);
+			    };
+			
+			    var i = 0;
+			    Req = store.openCursor();
+			    
+			    Req.onsuccess = function(e) 
+			    {
+			      	var data = e.target.result;
+			      	var tbody;
+			      	if (data) 
+			      	{
+			      		i++;// 计数器自增序号
+			      		
+				        tbody += "<tr>";
+				        	tbody += "<td>"+ data.key +"</td>";
+				        	tbody += "<td><input type='checkbox' name='checkBox' value="+ 0 +"/></td>";
+				        	tbody += "<td>"+ i +"</td>";
+				        	tbody += "<td>"+ data.value.OrderNum +"</td>";
+				        	tbody += "<td>"+ data.value.OrderRMB +"</td>";
+				        	tbody += "<td>"+ data.value.Receiver +"</td>";
+				        	tbody += "<td>"+ data.value.PcMobile +"</td>";
+				        	tbody += "<td>"+ data.value.OrderTime +"</td>";
+				        tbody += "</tr>";
+				        
+			        	$('#tbody').append(tbody);
+	
+			        	data.continue(); //移动到存储下的下一个对象
+			        	
+			      	} 
+			      	else
+			      	{
+			      		alert("数据库貌似没有数据！");
+			      		return false;
+			      	}
+			    };
+		  	};
+
+			
+			function addEventListeners() 
+			{
+			    console.debug("addEventListeners");
+			    
+			    InitDB();//执行初始化函数
+	
+	
+				$('#search-list-button').click(function(e) 
+			    {
+			      	displayPubList();
+			    });
+				
+
+			
+			    $('#delete-button').click(function(e) 
+			    {
+			      	console.debug("delete ...");
+			      	var k = $('#pub-biblioid-to-delete').val();
+			      	console.debug("delete k:", k);
+			      	var tx = db.transaction(DB_STORE_NAME, 'readwrite');
+			      	var store = tx.objectStore(DB_STORE_NAME);
+	
+			      	k = Number(k);
+			
+	
+			      	var Req = store.get(k);
+			      	Req.onsuccess = function(e) 
+			      	{
+			        	var record = e.target.result;
+			        	console.debug("record:", record);
+			        	if (typeof record !== 'undefined') 
+			        	{
+				         	Req = store.delete(k);
+				          	Req.onsuccess = function(e) 
+				          	{
+				            	console.debug("e:", e);
+				            	console.debug("e.target:", e.target);
+				            	console.debug("e.target.result:", e.target.result);
+				            	console.debug("delete successful");
+				            	displayPubList();
+				          	};
+				          	
+				          	Req.onerror = function (e) 
+				          	{
+				            	console.error("delete:", e.target.errorCode);
+				          	};
+			        	} 
+			        	else 
+			        	{
+			        		alert("没有找到匹配记录!");
+			        	}
+			      };
+			      
+			      	Req.onerror = function (e) 
+			      	{
+			        	console.error("delete:", e.target.errorCode);
+			      	};
+			
+			    }); 
+			
+			}
+	
+			addEventListeners();
+		})(); // 立即调用的函数表达式（IIFE）
+	
+	</script>
+</html>
