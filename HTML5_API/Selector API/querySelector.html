@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>querySelector</title>
+		<style type="text/css">
+			td{border-style: solid; border-width: 1px; font-size: 300%; width: 200px; text-align: center;}
+			button{width: 300px; height: 80px; font-size: 36px;}
+			.text{font-size: 24px; color: red;}
+			#hover{font-size: 100px; font-weight: bold;}
+		</style>
+	</head>
+	<body>
+		<section>
+			<table border="" cellspacing="" cellpadding="">
+				<tr>
+					<td>A1</td>
+					<td>A2</td>
+					<td>A3</td>
+					<td>A4</td>
+				</tr>
+				<tr>
+					<td>B1</td>
+					<td>B2</td>
+					<td>B3</td>
+					<td>B4</td>
+				</tr>
+				<tr>
+					<td>C1</td>
+					<td>C2</td>
+					<td>C3</td>
+					<td>C4</td>
+				</tr>
+			</table>
+			<div class="text">焦点按钮，将鼠标悬停在表格单元格，然后按Enter键使用querySelector识别它们（TD：悬停）</div>
+			<button id="btn">查找 td:悬停目标</button>
+			<div id="hover"></div>
+		</section>
+	</body>
+	<script type="text/javascript">
+		window.onload = function(){
+			document.getElementById("btn").onclick = function(){
+				var hovered = document.querySelector("td:hover");
+				if(hovered){
+					document.getElementById("hover").innerHTML = hovered.innerHTML;
+				}
+			}
+		};
+	</script>
+</html>
