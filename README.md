@@ -15,11 +15,11 @@
 >  
 >
 >  网页的本质就是超文本[标记语言](https://baike.baidu.com/item/标记语言/5964436?fromModule=lemma_inlink)，通过结合使用其他的[Web技术](https://baike.baidu.com/item/Web技术?fromModule=lemma_inlink)（如：[脚本语言](https://baike.baidu.com/item/脚本语言/1379708?fromModule=lemma_inlink)、[公共网关接口](https://baike.baidu.com/item/公共网关接口/10911997?fromModule=lemma_inlink)、组件等），可以创造出功能强大的网页。因而，超文本标记语言是万维网（[Web](https://baike.baidu.com/item/Web?fromModule=lemma_inlink)）编程的基础，也就是说万维网是建立在超文本基础之上的。超文本标记语言之所以称为超文本标记语言，是因为文本中包含了所谓“超级链接”点。
->
->  
->
->  ### 定义
->
+
+
+
+### 定义
+
 >  超文本标记语言是[标准通用标记语言](https://baike.baidu.com/item/标准通用标记语言/6805073?fromModule=lemma_inlink)下的一个应用，也是一种规范，一种标准，它通过[标记符号](https://baike.baidu.com/item/标记符号/3666546?fromModule=lemma_inlink)来标记要显示的网页中的各个部分。网页文件本身是一种[文本文件](https://baike.baidu.com/item/文本文件/747597?fromModule=lemma_inlink)，通过在文本文件中添加标记符，可以告诉浏览器如何显示其中的内容（如：文字如何处理，画面如何安排，图片如何显示等）。浏览器按顺序阅读网页文件，然后根据标记符解释和显示其标记的内容，对书写出错的标记将不指出其错误，且不停止其[解释执行](https://baike.baidu.com/item/解释执行/8081777?fromModule=lemma_inlink)过程，编制者只能通过显示效果来分析出错原因和出错部位。但需要注意的是，对于不同的浏览器，对同一标记符可能会有不完全相同的解释，因而可能会有不同的显示效果。
 
 
