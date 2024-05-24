@@ -162,4 +162,4 @@ HTML 5 中不再支持的属性：accesskey
 
 HTML 5 中的新事件属性：onabort， onbeforeunload， [oncontextmenu](https://baike.baidu.com/item/oncontextmenu/7943713?fromModule=lemma_inlink)， ondrag， ondragend， ondragenter， ondragleave， ondragover， ondragstart， ondrop， onerror， onmessage， onmousewheel， onresize， onscroll， onunload。
 
-注：HTML 5不再支持的 HTML 4.01 属性：onreset。
+`注：HTML 5不再支持的 HTML 4.01 属性：onreset！`

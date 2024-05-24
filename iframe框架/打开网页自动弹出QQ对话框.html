@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>打开网页自动弹出QQ对话框</title>
+</head>
+
+<style type="text/css">
+	html,
+	body {
+		font-family: "微软雅黑";
+	}
+
+	.clear {
+		clear: both;
+	}
+
+	.container{ width: 300px; height: 200px; border: 1px solid gray;}
+</style>
+
+<body>
+	<!--
+	自动弹出对话框
+
+	我们在网页中放置一个框架，然后框架的地址就是上面的那段代码，当网页加载的时候就会自动去访问这个地址，于是就会自动弹出QQ聊天窗口，当然我们需要设置这个框架不显示，不能让用户看到。
+	-->
+	<iframe style="display:none;" src="tencent://message/?uin=1278230143&Site=&menu=yes"></iframe>
+
+	<iframe style="display:none;" class="qq_iframe" src=""></iframe>
+	<script>
+	/**
+	设置多个客服QQ
+
+	针对企业中有多个客服的情况，为了客服直接合理分配接待。刚刚也研究出了一套解决方案就是预设多个客服QQ，然后给访客随机弹出一个客服QQ的对话框！当然这个适合于企业，对于个人站长就没必要了。
+	*/
+	$(function(){
+		qq_list = new Array('1278230143', '353207542');
+		//随机
+		qq_i = Math.floor(Math.random()*qq_list.length);
+		src = "tencent://message/?uin="+qq_list[qq_i]+"&Site=&menu=yes";
+		$('.qq_iframe').attr('src', "tencent://message/?uin="+src+"&Site=&menu=yes")
+	})
+	</script>
+
+	<iframe style="display:none;" class="qq_iframe" src=""></iframe>
+	<script>
+	/**
+	延时弹出对话框
+	有不少客户问我如何设置访客打开页面后10秒再弹出，再次研究更新了这个弹出，确实找到的方法可设置10秒后弹出！这样可以一定程度上提升用户体验，同时让访客先看看网站的优质服务能够有效地提升客户对产品的认可度，进而提升客户主动沟通的机会！
+	*/
+	$(function(){
+		setTimeout(function(){
+			qq_list = new Array('1278230143', '353207542');
+			//随机
+			qq_i = Math.floor(Math.random()*qq_list.length);
+			src = "tencent://message/?uin="+qq_list[qq_i]+"&Site=&menu=yes";
+		
+			$('.qq_iframe').attr('src', "tencent://message/?uin="+src+"&Site=&menu=yes")
+		}, 10000)
+	})
+	</script>
+</body>
+
+
+</html>
